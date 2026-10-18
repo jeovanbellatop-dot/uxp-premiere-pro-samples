@@ -31,5 +31,8 @@ services:
         sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
+      # Nome (ID) do banco Firestore; deixe vazio para o banco padrão "(default)".
+      - key: FIRESTORE_DATABASE_ID
+        sync: false
       - key: FIREBASE_STORAGE_BUCKET
         sync: false

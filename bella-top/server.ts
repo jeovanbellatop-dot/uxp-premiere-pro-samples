@@ -13,7 +13,7 @@ import {
   validateGoogleDriveConnectivity,
 } from "./server/diagnosticsTest";
 import { dbRoutes } from "./server/routes/dbRoutes";
-import { warmUpLiveMirrors } from "./server/firebaseAdmin";
+import { warmUpLiveMirrors, diagnoseFirestore } from "./server/firebaseAdmin";
 import { storageRoutes } from './server/routes/storageRoutes';
 import { fileRoutes, driveRoutes, storageStatusRoutes, backupRoutes } from './server/routes/fileRoutes';
 import { authRoutes } from './server/routes/authRoutes';
@@ -35,6 +35,7 @@ const requireSession = async (req: express.Request, res: express.Response, next:
   const publicPaths = [
     '/auth/login',
     '/health',
+    '/health/firebase',
     '/drive/health',
   ];
 
@@ -260,6 +261,11 @@ app.get("/api/health", (req, res) => {
       isConfigured: !!openAiClient,
     },
   });
+});
+
+// Diagnóstico público da ligação com o Firebase (sem segredos): mostra o motivo exato de uma falha.
+app.get("/api/health/firebase", async (_req, res) => {
+  res.json(await diagnoseFirestore());
 });
 
 // Diagnostics & Connectivity Test endpoint (Firestore, Google Drive & Environment)

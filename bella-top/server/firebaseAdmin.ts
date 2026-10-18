@@ -12,13 +12,27 @@ import { getStorage } from 'firebase-admin/storage';
 let adminApp: App | null = null;
 let firestoreInstance: Firestore | null = null;
 
+/** Chave colada com "\n" escrito (comum ao colar no painel da hospedagem) vira quebra de linha real. */
+function normalizeServiceAccount(sa: Record<string, any>): Record<string, any> {
+  if (typeof sa.private_key === 'string' && sa.private_key.includes('\\n')) {
+    sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+  }
+  return sa;
+}
+
 function parseServiceAccount(): Record<string, any> | null {
+  const sa = parseServiceAccountRaw();
+  return sa ? normalizeServiceAccount(sa) : null;
+}
+
+function parseServiceAccountRaw(): Record<string, any> | null {
   const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '';
   if (!rawKey || !rawKey.trim()) {
     return null;
   }
 
-  const trimmed = rawKey.trim();
+  // Aspas em volta do valor inteiro (coladas junto no painel) atrapalham a leitura.
+  const trimmed = rawKey.trim().replace(/^'([\s\S]*)'$/, '$1');
 
   // 1. JSON direto
   if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
@@ -72,13 +86,61 @@ export function getFirebaseAdminApp(): App {
   return adminApp;
 }
 
+/** Nome do banco Firestore (FIRESTORE_DATABASE_ID). Vazio ou "(default)" = banco padrão. */
+export function getFirestoreDatabaseId(): string | undefined {
+  const id = (process.env.FIRESTORE_DATABASE_ID || '').trim();
+  return id && id !== '(default)' ? id : undefined;
+}
+
+/** Explica em português, sem expor segredos, por que o Firestore falhou. */
+export function explainFirestoreError(err: any): string {
+  const msg = String(err?.message || err || '');
+  const code = err?.code;
+  if (/GOOGLE_SERVICE_ACCOUNT_KEY não configurada/i.test(msg)) {
+    return process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+      ? 'A variável GOOGLE_SERVICE_ACCOUNT_KEY existe no Render, mas o valor não é um JSON de conta de serviço válido. Cole o conteúdo inteiro do arquivo .json baixado do Firebase (começa com { e termina com }).'
+      : 'A variável GOOGLE_SERVICE_ACCOUNT_KEY não existe no Render. Crie-a em Environment com o conteúdo do arquivo .json da conta de serviço do Firebase.';
+  }
+  if (code === 5 || /NOT_FOUND/i.test(msg)) {
+    return `O banco Firestore "${getFirestoreDatabaseId() || '(default)'}" não foi encontrado neste projeto. Se o seu banco tem outro nome (ID do banco no console do Firebase), defina FIRESTORE_DATABASE_ID no Render com esse nome; se não existe banco, crie o Firestore no console do Firebase.`;
+  }
+  if (code === 7 || /PERMISSION_DENIED/i.test(msg)) {
+    if (/has not been used|is disabled/i.test(msg)) return 'A API do Cloud Firestore está desligada neste projeto. Ative-a no Google Cloud Console (APIs e serviços).';
+    return 'A conta de serviço da chave não tem permissão no Firestore. No Google Cloud (IAM), dê a ela o papel "Cloud Datastore User" ou "Firebase Admin".';
+  }
+  if (code === 16 || /UNAUTHENTICATED|invalid_grant|invalid_signature|DECODER|PEM/i.test(msg)) {
+    return 'A chave da conta de serviço foi recusada (excluída, revogada ou colada com erro). Gere uma nova chave no Firebase (Configurações do projeto → Contas de serviço) e cole o .json inteiro em GOOGLE_SERVICE_ACCOUNT_KEY.';
+  }
+  return 'Erro ao acessar o Firestore: ' + msg.slice(0, 200);
+}
+
+/** Diagnóstico público e seguro (sem segredos) da ligação com o Firestore. */
+export async function diagnoseFirestore(): Promise<Record<string, any>> {
+  const keyPresent = Boolean((process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '').trim());
+  const sa = parseServiceAccount();
+  const base = {
+    chaveConfigurada: keyPresent,
+    chaveValida: Boolean(sa && sa.private_key && sa.client_email),
+    projeto: sa?.project_id || process.env.FIREBASE_PROJECT_ID || null,
+    banco: getFirestoreDatabaseId() || '(default)',
+  };
+  try {
+    await getFirestoreDb().collection('usuarios').limit(1).get();
+    return { ...base, status: 'CONECTADO', mensagem: 'Firestore acessível: o servidor consegue ler os usuários.' };
+  } catch (err: any) {
+    return { ...base, status: 'ERRO', codigo: err?.code ?? null, mensagem: explainFirestoreError(err) };
+  }
+}
+
 export function getFirestoreDb(): Firestore {
   if (firestoreInstance) {
     return firestoreInstance;
   }
 
   const app = getFirebaseAdminApp();
-  firestoreInstance = getFirestore(app);
+  // Projetos criados pelo AI Studio costumam usar um banco Firestore com nome próprio.
+  const databaseId = getFirestoreDatabaseId();
+  firestoreInstance = databaseId ? getFirestore(app, databaseId) : getFirestore(app);
   try {
     firestoreInstance.settings({ ignoreUndefinedProperties: true });
   } catch {

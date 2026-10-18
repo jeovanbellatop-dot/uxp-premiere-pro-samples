@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { ServerAuthService, isOpenAccessMode } from '../authService';
-import { getFirestoreDb } from '../firebaseAdmin';
+import { getFirestoreDb, explainFirestoreError } from '../firebaseAdmin';
 
 export const authRoutes = Router();
 
@@ -60,7 +60,7 @@ authRoutes.get('/login-options', async (_req: Request, res: Response) => {
       success: false,
       users: [],
       openAccess: isOpenAccessMode(),
-      error: 'O servidor não conseguiu ler os usuários no banco de dados (Firebase). Confira a chave GOOGLE_SERVICE_ACCOUNT_KEY no Render.',
+      error: 'O servidor não conseguiu ler os usuários no banco de dados (Firebase). ' + explainFirestoreError(err),
     });
   }
 });

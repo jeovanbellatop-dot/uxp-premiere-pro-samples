@@ -115,7 +115,8 @@ function getFirestoreInstance(): Firestore | null {
     }
   }
 
-  return getFirestore(firestoreApp);
+  const databaseId = (process.env.FIRESTORE_DATABASE_ID || '').trim();
+  return databaseId && databaseId !== '(default)' ? getFirestore(firestoreApp, databaseId) : getFirestore(firestoreApp);
 }
 
 /**
