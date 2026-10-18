@@ -11,6 +11,7 @@
  * AMBIENTE ISOLADO: localStorage e fetch simulados, sem acesso ao Firebase.
  */
 
+import './offlineFirebaseKey';
 import crypto from 'crypto';
 
 // ---------------------------------------------------------------------------

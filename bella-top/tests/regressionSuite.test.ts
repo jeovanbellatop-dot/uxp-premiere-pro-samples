@@ -4,6 +4,7 @@
  * AMBIENTE ISOLADO COM MOCKS IN-MEMORY - SEM NENHUM ACESSO OU GRAVAÇÃO REAL NO FIREBASE.
  */
 
+import './offlineFirebaseKey';
 import crypto from 'crypto';
 import { createRequire } from 'module';
 

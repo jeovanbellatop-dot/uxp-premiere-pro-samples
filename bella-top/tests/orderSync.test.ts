@@ -3,6 +3,7 @@
  * Suíte de testes de sincronização, fila de pendentes e recarga da OP.
  * AMBIENTE ISOLADO COM MOCKS - SEM GRAVAÇÃO REAL NO FIREBASE.
  */
+import './offlineFirebaseKey';
 import crypto from 'crypto';
 import { createRequire } from 'module';
 

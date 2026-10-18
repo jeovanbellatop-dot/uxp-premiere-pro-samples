@@ -12,5 +12,6 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/build ./build
 EXPOSE 3000
-CMD ["node", "dist/server.cjs"]
+CMD ["node", "build/server.cjs"]

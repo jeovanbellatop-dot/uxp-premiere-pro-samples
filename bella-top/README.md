@@ -37,3 +37,11 @@ Precisa de Node 22 e das variáveis do `.env.example` (principalmente `GOOGLE_SE
 - **Docker:** `docker build -t bella-top . && docker run -p 3000:3000 --env-file .env bella-top`
 - **Render:** crie um Blueprint com o caminho `bella-top/render.yaml` (plano grátis, sem cartão) e preencha as chaves.
 - **Manual:** `npm ci && npm run build && NODE_ENV=production npm start`
+
+## Testes
+
+- `npm test` — testes seguros, com banco simulado em memória (não precisam de chave e nunca tocam o Firebase real):
+  regressão, sincronização, mídia e a simulação ponta a ponta de 50 OPs.
+- `npm run test:sim` — só a simulação ponta a ponta (PDF → PCP → máquinas → expedição).
+- `npm run test:live` — integração com Firestore/Storage/Drive **reais**; grava e apaga dados (Limpeza de Histórico).
+  Fica bloqueada a menos que `BELLATOP_LIVE_TESTS=1`. Use só com um projeto Firebase de teste, nunca o da fábrica.

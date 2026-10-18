@@ -1028,6 +1028,16 @@ async function runAllTests() {
   }
 }
 
+// Esta suíte usa o Firestore, o Storage e o Drive DE VERDADE e executa a Limpeza de
+// Histórico (apaga alertas e paradas). Só roda com autorização explícita.
+if (process.env.BELLATOP_LIVE_TESTS !== '1') {
+  console.log(
+    `${colors.yellow}Suíte de integração ao vivo NÃO executada: ela grava e apaga dados no Firebase real.${colors.reset}\n` +
+      'Para rodar contra um banco de TESTE (nunca o da fábrica): BELLATOP_LIVE_TESTS=1 npm run test:live'
+  );
+  process.exit(0);
+}
+
 runAllTests().catch((err) => {
   console.error('Erro fatal durante execução dos testes:', err);
   process.exit(1);
