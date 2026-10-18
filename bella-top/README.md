@@ -35,5 +35,5 @@ Ele abre em tela cheia, com ícone próprio, e usa o mesmo servidor e o mesmo ba
 Precisa de Node 22 e das variáveis do `.env.example` (principalmente `GOOGLE_SERVICE_ACCOUNT_KEY` do Firebase).
 
 - **Docker:** `docker build -t bella-top . && docker run -p 3000:3000 --env-file .env bella-top`
-- **Render:** `render.yaml` na pasta; crie um Blueprint apontando para este repositório e preencha as chaves.
+- **Render:** crie um Blueprint com o caminho `bella-top/render.yaml` (plano grátis, sem cartão) e preencha as chaves.
 - **Manual:** `npm ci && npm run build && NODE_ENV=production npm start`

@@ -1,13 +1,17 @@
 services:
   - type: web
     name: bella-top
-    runtime: docker
+    runtime: node
     rootDir: bella-top
-    plan: starter
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: "22"
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
         sync: false
       - key: OPENAI_API_KEY
