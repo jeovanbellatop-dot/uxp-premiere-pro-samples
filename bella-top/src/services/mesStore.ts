@@ -26,7 +26,8 @@ import {
   INITIAL_ORDERS,
   INITIAL_AUDIT_LOGS,
   INITIAL_ALERTS,
-  buildRouteBlueprint
+  buildRouteBlueprint,
+  textIndicatesVisor
 } from '../data/initialData';
 import type { RouteBlueprint } from '../data/initialData';
 import { hashPassword, generateSalt, verifyPassword, normalizeUsername } from '../utils/authCrypto';
@@ -1633,11 +1634,7 @@ class MesStore {
     const notesLower = (order.technicalNotes || '').toLowerCase();
     const modelLower = (order.handleType || '').toLowerCase();
 
-    const hasVisor = Boolean(
-      order.hasVisor ||
-      productNameLower.includes('visor') ||
-      notesLower.includes('visor')
-    );
+    const hasVisor = Boolean(order.hasVisor || textIndicatesVisor(order.productName, order.technicalNotes));
 
     const is8x12 =
       dimensionsStr.includes('8x12') ||
@@ -3071,7 +3068,7 @@ class MesStore {
         if (m.capabilities) {
           const cap = m.capabilities;
           const isAlcaVazada = opData.tipoAlca === 'VAZADA' || opData.modelo.toLowerCase().includes('vazada');
-          const isComVisor = opData.usoVisor || opData.modelo.toLowerCase().includes('visor');
+          const isComVisor = opData.usoVisor || textIndicatesVisor(opData.modelo);
           
           if (isComVisor && cap.permiteVisor === false) return false;
           if (!isComVisor && cap.permiteSemVisor === false) return false;
@@ -3090,9 +3087,9 @@ class MesStore {
               return false;
             }
           }
-          // 8x12 é exclusivo da Máquina 3
+          // 8x12 é exclusivo da Máquina 3 (regra só do Corte e Solda)
           const medidaNormalizada = (opData.medidasFormatadas || '').replace(/\s/g, '').toLowerCase();
-          if (medidaNormalizada === '8x12' && !cap.medidasExclusivas?.includes('8x12')) {
+          if (procId === 'proc_solda' && medidaNormalizada === '8x12' && !cap.medidasExclusivas?.includes('8x12')) {
             return false;
           }
         }

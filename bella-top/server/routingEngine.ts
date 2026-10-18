@@ -1,4 +1,4 @@
-import { buildRouteBlueprint } from '../src/data/initialData';
+import { buildRouteBlueprint, textIndicatesVisor } from '../src/data/initialData';
 import type { BlueprintStep } from '../src/data/initialData';
 
 export interface MachineCandidate {
@@ -72,13 +72,13 @@ export class RoutingEngine {
     const isAlcaVazada = handle === 'VAZADA' || op.model.toLowerCase().includes('vazada');
     const isAlcaFita = handle === 'FITA' || op.model.toLowerCase().includes('fita');
     const hasCordLegacy = op.hasCord || handle === 'CORDAO' || op.model.toLowerCase().includes('mochil') || op.model.toLowerCase().includes('cordao');
-    const hasWindow = op.hasWindow || op.model.toLowerCase().includes('visor') || op.model.toLowerCase().includes('janela');
+    const hasWindow = op.hasWindow || textIndicatesVisor(op.model);
     
     // Normalização do tamanho
     let size = (op.size || '').toUpperCase().trim();
     if (!size) {
       if (op.width && op.height) {
-        if (op.width === 8 && op.height === 12) size = '8x12';
+        if ((op.width === 8 && op.height === 12) || (op.width === 80 && op.height === 120)) size = '8x12';
         else if (op.width <= 250) size = 'P';
         else if (op.width <= 350) size = 'M';
         else if (op.width <= 450) size = 'G';
@@ -88,7 +88,7 @@ export class RoutingEngine {
       }
     }
 
-    const is8x12 = size === '8x12' || size === '8 X 12' || size === '8*12';
+    const is8x12 = /^8\s*[x*]\s*12$/i.test(size) || (op.width === 80 && op.height === 120);
 
     // 1. ROTEIRO OFICIAL: mesma fonte de regras usada pelo PCP (REFILE XOR FLEXOGRAFIA).
     const blueprint = buildRouteBlueprint({
@@ -229,6 +229,18 @@ export class RoutingEngine {
     // O manual virou etapa propria (posto de Cordao Manual) e nao prende a maquina.
     const hasCord = blueprint.cordMode === 'AUTOMATICO';
     void hasCordLegacy;
+
+    // Cordao automatico: so a Maquina 3 tem o aplicador.
+    if (hasCord) {
+      corteCandidates.forEach((c) => {
+        if (c.id !== 'mach_corte_3' && c.isCompatible) {
+          c.isCompatible = false;
+          c.incompatibilityReason = 'Cordão automático exige o aplicador da Máquina 3.';
+          c.score = 0;
+        }
+      });
+      selectedCorte = corteCandidates.find((c) => c.id === 'mach_corte_3');
+    }
 
     let waitingM3 = false;
     if (is8x12) {

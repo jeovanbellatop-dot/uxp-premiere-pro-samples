@@ -478,7 +478,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
                     {isReady && (
                       <button
-                        onClick={() => startOperation(step.id, activeUser.id)}
+                        onClick={() => startOperation(step.id, undefined, activeUser.id)}
                         className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
                       >
                         <Play className="w-4 h-4 fill-white" />
@@ -509,7 +509,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                     {isPaused && (
                       <>
                         <button
-                          onClick={() => resumeOperation(step.id, activeUser.id)}
+                          onClick={() => resumeOperation(step.id, undefined, activeUser.id)}
                           className="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                         >
                           <Play className="w-4 h-4 fill-white" />
@@ -546,7 +546,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
           isOpen={true}
           onClose={() => setActiveFinishStep(null)}
           onConfirm={(data) => {
-            finishOperation(activeFinishStep.step.id, data, activeUser.id);
+            finishOperation(activeFinishStep.step.id, data, undefined, activeUser.id);
             setActiveFinishStep(null);
           }}
           machineName="Expedição Manual"
@@ -563,7 +563,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
           isOpen={true}
           onClose={() => setActivePauseStepId(null)}
           onConfirm={(reason) => {
-            pauseOperation(activePauseStepId, reason, activeUser.id);
+            pauseOperation(activePauseStepId, reason, undefined, activeUser.id);
             setActivePauseStepId(null);
           }}
         />

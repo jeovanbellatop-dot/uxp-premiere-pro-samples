@@ -12,7 +12,8 @@
     "lint": "tsc --noEmit",
     "test": "tsx tests/productionFlow.test.ts",
     "test:media": "tsx tests/orderMedia.test.ts",
-    "test:sync": "tsx tests/orderSync.test.ts"
+    "test:sync": "tsx tests/orderSync.test.ts",
+    "test:sim": "tsx tests/endToEndSimulation.test.ts 50"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

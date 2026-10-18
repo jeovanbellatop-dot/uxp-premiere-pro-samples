@@ -912,6 +912,12 @@ function normalizeRouteText(value?: string): string {
     .toLowerCase();
 }
 
+/** O texto da OP pede visor/janela? "Sem visor" / "sem janela" nao contam. */
+export function textIndicatesVisor(...texts: Array<string | undefined>): boolean {
+  const t = normalizeRouteText(texts.filter(Boolean).join(" ")).replace(/\bsem\s+(visor|janela)\b/g, " ");
+  return /\b(visor|janela)\b/.test(t);
+}
+
 /** Identifica o produto pelo que a OP traz escrito. Ambiguo devolve NAO_IDENTIFICADO. */
 export function identifyProductKey(input: RouteBlueprintInput): ProductKey {
   const hay = normalizeRouteText([input.productName, input.model, input.productCode].join(" "));
@@ -1003,7 +1009,8 @@ export function buildRouteBlueprint(input: RouteBlueprintInput): RouteBlueprint 
     cordMode = opIndicatesCord ? "NAO_IDENTIFICADO" : "NENHUM";
   }
 
-  if (cordForcedByClient) {
+  // Ecobag e Saquinho de Algodao nao tem etapa de cordao: a regra do cliente nao se aplica.
+  if (cordForcedByClient && rule.flow === "PADRAO") {
     if (opIndicatesCord || cordMode !== "NENHUM") {
       cordMode = "MANUAL";
     } else {

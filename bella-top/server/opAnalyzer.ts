@@ -472,9 +472,22 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
     }
 
     const hasCordao = /cord[aã]o|cordinha|fio|mochilinha|barbante/i.test(clean);
-    const hasVisor = /visor|janela|transparente|cristal/i.test(clean);
+    // "Sem visor" / "sem janela" nao contam como visor.
+    const hasVisor = /visor|janela|transparente|cristal/i.test(clean.replace(/sem\s+(visor|janela)(\s+cristal)?/gi, ' '));
     const isAlcaVazada = /vazada|boca\s+de\s+palha[cç]o/i.test(clean);
+    // Tipo de cordao quando a OP declara; sem declaracao fica para o PCP confirmar.
+    const cordMode: 'AUTOMATICO' | 'MANUAL' | 'NENHUM' | 'NAO_IDENTIFICADO' =
+      /cord[aã]o\s+autom[aá]tico/i.test(clean) ? 'AUTOMATICO'
+      : /cord[aã]o\s+manual/i.test(clean) ? 'MANUAL'
+      : hasCordao ? 'NAO_IDENTIFICADO' : 'NENHUM';
     const isAlcaFita = /al[cç]a\s+fita|fita\s+40|fita\s+30|fita\s+tnt/i.test(clean);
+
+    // Modelo so com o que a OP diz: cordao sozinho nao faz da OP uma Mochilinha.
+    const detectedModel = isAlcaVazada
+      ? (hasVisor ? 'Alça Vazada com Visor' : 'Alça Vazada Sem Visor')
+      : isAlcaFita ? 'Sacola Alça Fita'
+      : /mochil/i.test(clean) ? 'Mochilinha com Cordão'
+      : '';
 
     let handleType: 'VAZADA' | 'FITA' | 'CORDAO' | 'NENHUMA' | 'NAO_IDENTIFICADO' = 'NAO_IDENTIFICADO';
     if (isAlcaVazada) handleType = 'VAZADA';
@@ -517,7 +530,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
     const routeResult = RoutingEngine.computeRoute({
       opNumber: opNumber !== 'Não identificado' ? opNumber : 'PENDENTE',
       product: productName !== 'Não identificado' ? productName : 'Produto em Conferência',
-      model: isAlcaVazada ? 'Alça Vazada Sem Visor' : (hasCordao ? 'Mochilinha com Cordão' : (isAlcaFita ? 'Sacola Alça Fita' : 'Padrão')),
+      model: detectedModel || 'Padrão',
       material: 'TNT 100% Polipropileno',
       gsm: gsm > 0 ? gsm : 60,
       size,
@@ -528,6 +541,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
       handleType: handleType !== 'NAO_IDENTIFICADO' ? handleType : 'VAZADA',
       hasWindow: hasVisor,
       hasCord: hasCordao,
+      cordMode,
       printingMethod: printMethod !== 'NAO_IDENTIFICADO' ? printMethod : 'FLEXOGRAFIA',
       printingColors,
       finishing: ['Solda Ultrassônica'],
@@ -555,7 +569,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
         op_number: opNumber,
         customer,
         product: productName,
-        model: isAlcaVazada ? 'Alça Vazada Sem Visor' : (isAlcaFita ? 'Sacola Alça Fita' : (hasCordao ? 'Mochilinha com Cordão' : 'Conforme Layout')),
+        model: detectedModel || 'Conforme Layout',
         material: 'TNT 100% Polipropileno',
         gsm: gsm > 0 ? gsm : 60,
         material_color: corMatch ? corMatch[1].trim() : 'Conforme Layout',
@@ -567,7 +581,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
         handle_type: handleType,
         has_window: hasVisor,
         has_cord: hasCordao,
-        cord_mode: 'NAO_IDENTIFICADO' as any,
+        cord_mode: cordMode as any,
         product_type: 'NAO_IDENTIFICADO',
         requires_sewing: false,
         outsourced: false,
@@ -596,7 +610,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
         handle_type: { value: handleType, confidence: handleType !== 'NAO_IDENTIFICADO' ? 0.95 : 0.0 },
         has_window: { value: hasVisor, confidence: 0.95 },
         has_cord: { value: hasCordao, confidence: 0.95 },
-        cord_mode: { value: 'NAO_IDENTIFICADO', confidence: 0.0 },
+        cord_mode: { value: cordMode, confidence: cordMode === 'NAO_IDENTIFICADO' ? 0.0 : 0.9 },
         product_type: { value: 'NAO_IDENTIFICADO', confidence: 0.0 },
         printing_method: { value: printMethod, confidence: printMethod !== 'NAO_IDENTIFICADO' ? 0.92 : 0.0 },
         printing_colors: { value: printingColors, confidence: colorsMatch ? 0.90 : 0.70 },
