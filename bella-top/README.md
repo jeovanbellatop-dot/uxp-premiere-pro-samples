@@ -69,7 +69,8 @@ tocar numa máquina entra direto com um operador autorizado para ela (ou o admin
 e o card Administrador entra no painel. Quem tiver o link entra, então use só para testes.
 Para voltar a pedir senha: no Render, em Environment, troque `BELLATOP_OPEN_ACCESS` para `0` (ou apague) e salve.
 
-Com o modo de teste ligado, o servidor cadastra ao iniciar os logins da fábrica que faltarem (sem senha conhecida):
+Com o modo de teste ligado, o servidor cadastra ao iniciar os logins da fábrica que faltarem, todos com a senha de teste `123456` (aplicada uma única vez por login, inclusive no master):
 master, admin, robson (PCP), elton (Refiladeira + Flexografia), toninho (Máquinas 2/3/4), ueltom (Refiladeira),
 teste (Refiladeira + Máquinas 2/3/4), welton (Refiladeira), gabriel (Flexografia), viola (Carrossel e Carrossel Pequena)
-e carlos (Expedição). Antes de desligar o modo de teste, defina as senhas reais pela tela de usuários.
+e carlos (Expedição). Antes de desligar o modo de teste e usar na fábrica, troque as senhas pela tela de usuários
+(ou `npm run users:test -- --trocar-senhas-padrao`).

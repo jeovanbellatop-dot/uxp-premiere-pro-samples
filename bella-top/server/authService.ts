@@ -162,15 +162,25 @@ export class ServerAuthService {
    */
   public static async ensureDefaultUsers(): Promise<void> {
     // So no modo de teste (ou com BELLATOP_SEED_DEMO_USERS=1): cria os logins da fabrica
-    // que faltarem. Nao existe senha conhecida: cada conta recebe uma senha aleatoria que
-    // ninguem ve. No modo sem login ela nao e usada; para voltar o login, o administrador
-    // define as senhas pela tela de usuarios.
+    // que faltarem e aplica a senha padrao de teste UMA vez em cada um (inclusive master).
+    // Depois disso, uma senha trocada pelo usuario ou pelo administrador nao e sobrescrita.
     if (!isOpenAccessMode() && process.env.BELLATOP_SEED_DEMO_USERS !== '1') return;
 
     const db = getFirestoreDb();
     const usersCol = db.collection('usuarios');
     const now = new Date().toISOString();
     const CORTE_SOLDA = ['m2-corte-solda', 'm3-corte-solda', 'm4-corte-solda'];
+    const DEFAULT_TEST_PASSWORD = '123456';
+    const applyDefaultPassword = async (userId: string) => {
+      const salt = generateSalt();
+      await usersCol.doc(userId).update({
+        passwordSalt: salt,
+        passwordHash: hashPassword(DEFAULT_TEST_PASSWORD, salt),
+        mustChangePassword: false,
+        defaultTestPasswordApplied: true,
+        updatedAt: now,
+      });
+    };
 
     const defaults: Array<{
       id: string;
@@ -200,8 +210,8 @@ export class ServerAuthService {
       const existing = await this.getUserByLogin(def.login);
       if (!existing) {
         const salt = generateSalt();
-        const pHash = hashPassword(crypto.randomBytes(24).toString('hex'), salt);
-        const newUser: ServerUser = {
+        const pHash = hashPassword(DEFAULT_TEST_PASSWORD, salt);
+        const newUser: ServerUser & { defaultTestPasswordApplied: boolean } = {
           id: def.id,
           name: def.name,
           login: def.login,
@@ -216,11 +226,15 @@ export class ServerAuthService {
           shift: 'TURNO_1',
           isActive: true,
           mustChangePassword: false,
+          defaultTestPasswordApplied: true,
           createdAt: now,
           updatedAt: now,
         };
         await usersCol.doc(def.id).set(newUser);
-      } else if (
+        continue;
+      }
+      if (!(existing as any).defaultTestPasswordApplied) await applyDefaultPassword(existing.id);
+      if (
         def.role === 'OPERATOR' &&
         Array.isArray(existing.authorizedMachineIds) &&
         existing.authorizedMachineIds.length === 1 &&
@@ -230,6 +244,9 @@ export class ServerAuthService {
         await usersCol.doc(existing.id).update({ authorizedMachineIds: def.machines, updatedAt: now });
       }
     }
+
+    const master = await usersCol.doc('user_master').get();
+    if (master.exists && !(master.data() as any)?.defaultTestPasswordApplied) await applyDefaultPassword('user_master');
   }
 
   /**
