@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Studio — AI content generation",
-  description: "Generate images, copy, voiceovers and more. Your own AI creation studio.",
+  title: "Estúdio SL — criação com IA",
+  description: "Gere imagens, textos, locuções e mais. Seu estúdio de criação com inteligência artificial.",
   // Tell Chrome/Google not to auto-translate: translation mutates the DOM and
   // breaks React hydration (the "client-side exception").
   other: { google: "notranslate" },

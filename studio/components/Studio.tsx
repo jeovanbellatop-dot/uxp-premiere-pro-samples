@@ -18,7 +18,7 @@ export default function Studio({
   const [filter, setFilter] = useState<string>("all"); // project id or "all"
 
   async function createProject() {
-    const name = prompt("Project name");
+    const name = prompt("Nome do projeto");
     if (!name) return;
     const res = await fetch("/api/projects", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -43,12 +43,12 @@ export default function Studio({
         />
       ) : (
         <>
-          <h2 className="section">Tools</h2>
+          <h2 className="section">Ferramentas</h2>
           <div className="grid">
             {TOOLS.map((t) => (
               <div key={t.slug} className={`card ${t.available ? "" : "disabled"}`}
                 onClick={() => t.available && setActive(t)}>
-                {t.available ? <span className="cost">{t.cost}c</span> : <span className="soon">soon</span>}
+                {t.available ? <span className="cost">{t.cost}c</span> : <span className="soon">em breve</span>}
                 <div className="area">{t.area}</div>
                 <h3>{t.name}</h3>
                 <p>{t.description}</p>
@@ -59,19 +59,19 @@ export default function Studio({
       )}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 className="section">Library</h2>
+        <h2 className="section">Biblioteca</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <select value={filter} onChange={(e) => setFilter(e.target.value)}
             style={{ background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px" }}>
-            <option value="all">All projects</option>
+            <option value="all">Todos os projetos</option>
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
-          <button className="ghost" onClick={createProject}>+ Project</button>
+          <button className="ghost" onClick={createProject}>+ Projeto</button>
         </div>
       </div>
 
       {shown.length === 0 ? (
-        <p className="empty">Nothing here yet. Pick a tool and generate something.</p>
+        <p className="empty">Nada aqui ainda. Escolha uma ferramenta e crie algo.</p>
       ) : (
         <div className="gallery">
           {shown.map((g) => (
@@ -122,7 +122,7 @@ function Runner({
         body: JSON.stringify({ slug: tool.slug, prompt, image, projectId: projectId || undefined }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error || "Falhou");
       setResult({ output: data.output, kind: data.kind });
       onDone(data.balance, data.asset);
     } catch (err: any) {
@@ -138,13 +138,13 @@ function Runner({
     <div className="runner">
       <div className="head">
         <h3>{tool.name}</h3>
-        <button className="back" onClick={onClose}>← All tools</button>
+        <button className="back" onClick={onClose}>← Todas as ferramentas</button>
       </div>
 
       {tool.needsImage && (
         <>
           <div className="drop" onClick={() => fileRef.current?.click()}>
-            {image ? "Change image" : "Click to upload an image"}
+            {image ? "Trocar imagem" : "Clique para enviar uma imagem"}
           </div>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickFile} />
           {image && <img className="preview-img" src={image} alt="input" />}
@@ -152,18 +152,18 @@ function Runner({
       )}
 
       <div style={{ marginTop: tool.needsImage ? 12 : 0 }}>
-        <textarea placeholder={tool.placeholder || "Enter a prompt…"} value={prompt}
+        <textarea placeholder={tool.placeholder || "Escreva um prompt…"} value={prompt}
           onChange={(e) => setPrompt(e.target.value)} />
       </div>
 
       <div className="row">
         <button className="primary" onClick={run} disabled={loading}>
-          {loading ? <><span className="spinner" /> &nbsp;Generating…</> : `Generate · ${tool.cost}c`}
+          {loading ? <><span className="spinner" /> &nbsp;Gerando…</> : `Gerar · ${tool.cost} cr`}
         </button>
         {projects.length > 0 && (
           <select value={projectId} onChange={(e) => setProjectId(e.target.value)}
             style={{ background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 10px" }}>
-            <option value="">No project</option>
+            <option value="">Sem projeto</option>
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         )}
@@ -174,9 +174,9 @@ function Runner({
       {result && (
         <div className="result">
           {isImage ? (
-            <><img src={result.output} alt="result" /><br /><a className="dl" href={result.output} download>Download</a></>
+            <><img src={result.output} alt="result" /><br /><a className="dl" href={result.output} download>Baixar</a></>
           ) : result.kind === "audio" ? (
-            <><audio controls src={result.output} style={{ width: "100%" }} /><br /><a className="dl" href={result.output} download>Download</a></>
+            <><audio controls src={result.output} style={{ width: "100%" }} /><br /><a className="dl" href={result.output} download>Baixar</a></>
           ) : (
             <pre>{result.output}</pre>
           )}

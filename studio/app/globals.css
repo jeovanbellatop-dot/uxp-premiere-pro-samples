@@ -1,14 +1,14 @@
 :root {
-  --bg: #0b0d12;
-  --surface: #151924;
-  --surface-2: #1d2231;
-  --border: #2a3042;
-  --text: #e7ebf3;
-  --muted: #9aa4b8;
-  --accent: #6c8cff;
-  --accent-2: #8a5cf6;
+  --bg: #0b0a10;
+  --surface: #16141f;
+  --surface-2: #201d2e;
+  --border: #2e2a40;
+  --text: #ece9f5;
+  --muted: #a39fb5;
+  --accent: #ff7a59;
+  --accent-2: #a855f7;
   --danger: #ff6b6b;
-  --radius: 14px;
+  --radius: 16px;
 }
 
 * { box-sizing: border-box; }
@@ -28,8 +28,10 @@ header.top {
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; }
 .logo {
-  width: 30px; height: 30px; border-radius: 9px;
+  width: 32px; height: 32px; border-radius: 10px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 800; letter-spacing: .02em;
 }
 .credits {
   display: flex; align-items: center; gap: 10px;

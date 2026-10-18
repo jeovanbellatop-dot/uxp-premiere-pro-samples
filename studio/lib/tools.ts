@@ -17,43 +17,43 @@ export interface Tool {
 }
 
 export const TOOLS: Tool[] = [
-  // Image
-  { slug: "text-to-image", name: "Text → Image", area: "Image", kind: "image", cost: 5,
-    description: "Describe anything and get an image.", available: true,
-    placeholder: "A neon-lit street market at night, cinematic, 35mm" },
-  { slug: "image-edit", name: "Edit Image", area: "Image", kind: "image-edit", cost: 5,
-    description: "Upload an image and tell it what to change.", needsImage: true, available: true,
-    placeholder: "Replace the background with a snowy mountain, keep the subject" },
-  { slug: "product-shot", name: "Product Shot", area: "Marketing", kind: "image", cost: 6,
-    description: "Turn a plain product into a styled studio scene.", available: true,
-    placeholder: "A perfume bottle on wet stone, soft morning light, luxury ad" },
+  // Imagem
+  { slug: "text-to-image", name: "Texto → Imagem", area: "Imagem", kind: "image", cost: 5,
+    description: "Descreva qualquer coisa e receba uma imagem.", available: true,
+    placeholder: "Um mercado de rua à noite com luzes de neon, cinematográfico, 35mm" },
+  { slug: "image-edit", name: "Editar Imagem", area: "Imagem", kind: "image-edit", cost: 5,
+    description: "Envie uma imagem e diga o que mudar.", needsImage: true, available: true,
+    placeholder: "Troque o fundo por uma montanha com neve, mantendo o personagem" },
+  { slug: "product-shot", name: "Foto de Produto", area: "Marketing", kind: "image", cost: 6,
+    description: "Transforme um produto simples numa cena de estúdio.", available: true,
+    placeholder: "Um frasco de perfume sobre pedra molhada, luz suave da manhã, anúncio de luxo" },
 
-  // Text
-  { slug: "prompt-enhancer", name: "Prompt Enhancer", area: "Create", kind: "text", cost: 1,
-    description: "Turn a rough idea into a rich generation prompt.", available: true,
-    placeholder: "a cat astronaut" },
-  { slug: "ad-copy", name: "Ad Copy", area: "Marketing", kind: "text", cost: 1,
-    description: "Headlines and captions for your campaign.", available: true,
-    placeholder: "Product: a reusable coffee cup. Audience: commuters." },
-  { slug: "video-script", name: "Short Video Script", area: "Marketing", kind: "text", cost: 1,
-    description: "A hook + beat-by-beat script for a short video.", available: true,
-    placeholder: "A 30s reel promoting a budgeting app for students" },
+  // Texto
+  { slug: "prompt-enhancer", name: "Melhorar Prompt", area: "Criar", kind: "text", cost: 1,
+    description: "Transforme uma ideia simples num prompt detalhado.", available: true,
+    placeholder: "um gato astronauta" },
+  { slug: "ad-copy", name: "Textos de Anúncio", area: "Marketing", kind: "text", cost: 1,
+    description: "Títulos e legendas para sua campanha.", available: true,
+    placeholder: "Produto: um copo reutilizável. Público: quem trabalha de casa." },
+  { slug: "video-script", name: "Roteiro de Vídeo", area: "Marketing", kind: "text", cost: 1,
+    description: "Um gancho + roteiro passo a passo para um vídeo curto.", available: true,
+    placeholder: "Um reels de 30s promovendo um app de finanças para estudantes" },
 
-  // Vision
-  { slug: "image-analyzer", name: "Analyze Image", area: "Insights", kind: "vision", cost: 1,
-    description: "Upload an image and ask anything about it.", needsImage: true, available: true,
-    placeholder: "What could make this product photo more appealing?" },
+  // Visão
+  { slug: "image-analyzer", name: "Analisar Imagem", area: "Análise", kind: "vision", cost: 1,
+    description: "Envie uma imagem e pergunte qualquer coisa sobre ela.", needsImage: true, available: true,
+    placeholder: "O que deixaria esta foto de produto mais atraente?" },
 
-  // Audio
-  { slug: "voiceover", name: "Voiceover (TTS)", area: "Audio", kind: "audio", cost: 2,
-    description: "Turn a script into a spoken voiceover.", available: true,
-    placeholder: "Welcome to the future of creation." },
+  // Áudio
+  { slug: "voiceover", name: "Locução (voz)", area: "Áudio", kind: "audio", cost: 2,
+    description: "Transforme um texto em voz falada.", available: true,
+    placeholder: "Bem-vindo ao futuro da criação." },
 
-  // Not yet available on this key
-  { slug: "text-to-video", name: "Text → Video", area: "Video", kind: "image", cost: 20,
-    description: "Generate a video clip. Needs a Veo-enabled key.", available: false },
-  { slug: "image-to-video", name: "Image → Video", area: "Video", kind: "image", cost: 20,
-    description: "Animate a still image. Needs a Veo-enabled key.", available: false },
+  // Ainda indisponível nesta chave
+  { slug: "text-to-video", name: "Texto → Vídeo", area: "Vídeo", kind: "image", cost: 20,
+    description: "Gerar um clipe de vídeo. Precisa de uma chave com Veo.", available: false },
+  { slug: "image-to-video", name: "Imagem → Vídeo", area: "Vídeo", kind: "image", cost: 20,
+    description: "Animar uma imagem parada. Precisa de uma chave com Veo.", available: false },
 ];
 
 export function getTool(slug: string): Tool | undefined {

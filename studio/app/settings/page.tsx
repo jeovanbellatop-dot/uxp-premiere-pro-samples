@@ -13,29 +13,29 @@ export default function SettingsPage() {
   return (
     <div className="wrap">
       <AppNav credits={user.credits} />
-      <h2 className="section">Account</h2>
+      <h2 className="section">Conta</h2>
       <div className="runner">
-        <p style={{ margin: "4px 0" }}><b>Email:</b> {user.email}</p>
-        <p style={{ margin: "4px 0" }}><b>Name:</b> {user.name || "—"}</p>
-        <p style={{ margin: "4px 0" }}><b>Credits:</b> {user.credits}</p>
+        <p style={{ margin: "4px 0" }}><b>E-mail:</b> {user.email}</p>
+        <p style={{ margin: "4px 0" }}><b>Nome:</b> {user.name || "—"}</p>
+        <p style={{ margin: "4px 0" }}><b>Créditos:</b> {user.credits}</p>
       </div>
 
-      <h2 className="section">Providers</h2>
+      <h2 className="section">Integrações</h2>
       <div className="runner">
         <p style={{ margin: "4px 0" }}>
-          <b>Gemini API key:</b>{" "}
+          <b>Chave do Gemini:</b>{" "}
           {geminiSet
-            ? <span style={{ color: "var(--accent)" }}>configured (server-side)</span>
-            : <span style={{ color: "var(--danger)" }}>not set — add GEMINI_API_KEY to .env.local</span>}
+            ? <span style={{ color: "var(--accent)" }}>configurada (no servidor)</span>
+            : <span style={{ color: "var(--danger)" }}>não configurada — defina GEMINI_API_KEY</span>}
         </p>
         <p style={{ margin: "4px 0" }}>
           <b>Stripe:</b>{" "}
           {stripeEnabled()
-            ? <span style={{ color: "var(--accent)" }}>configured</span>
-            : <span style={{ color: "var(--muted)" }}>not set (dev mode — credits add instantly)</span>}
+            ? <span style={{ color: "var(--accent)" }}>configurado</span>
+            : <span style={{ color: "var(--muted)" }}>não configurado (modo de teste — créditos na hora)</span>}
         </p>
         <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 10 }}>
-          Keys live in <code>.env.local</code> on the server and never reach the browser.
+          As chaves ficam só no servidor e nunca chegam ao navegador.
         </p>
       </div>
     </div>
