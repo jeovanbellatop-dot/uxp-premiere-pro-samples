@@ -6,7 +6,7 @@ services:
     plan: free
     branch: claude/hopeful-bardeen-ubalm3
     rootDir: studio
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
