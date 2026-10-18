@@ -6,7 +6,11 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { data, save } from "./db";
 
-const MEDIA_DIR = path.join(process.cwd(), "public", "generated");
+// Media is written to a writable dir and served via /api/media/<name>.
+// (Next does NOT serve files added to /public after the build, so generated
+// images/audio must go through a route handler, not a static path.)
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
+const MEDIA_DIR = path.join(DATA_DIR, "media");
 
 export interface Asset {
   id: string;
@@ -61,7 +65,7 @@ export async function saveDataUrl(dataUrl: string): Promise<string> {
   const ext = mime.split("/")[1]?.replace("jpeg", "jpg") || "bin";
   const name = `${randomUUID()}.${ext}`;
   await fsp.writeFile(path.join(MEDIA_DIR, name), Buffer.from(b64, "base64"));
-  return `/generated/${name}`;
+  return `/api/media/${name}`;
 }
 
 // ---- Jobs -------------------------------------------------------------------
