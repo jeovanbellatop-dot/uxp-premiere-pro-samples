@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, stripeEnabled } from "../../../../lib/billing";
 import { addCredits } from "../../../../lib/store";
-import { db } from "../../../../lib/db";
+import { data } from "../../../../lib/db";
 
 export const runtime = "nodejs";
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const userId = s.metadata?.userId;
     const credits = Number(s.metadata?.credits || 0);
     // Idempotency: don't double-credit the same checkout session.
-    const seen = db.prepare("SELECT 1 FROM credit_txns WHERE ref = ?").get(`stripe:${s.id}`);
+    const seen = data.creditTxns.some((t) => t.ref === `stripe:${s.id}`);
     if (userId && credits > 0 && !seen) {
       addCredits(userId, credits, "purchase", `stripe:${s.id}`);
     }
