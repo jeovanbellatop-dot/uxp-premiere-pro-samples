@@ -1,0 +1,27 @@
+feature,area,priority,original,clone,notes
+Text to image,image,must,yes,no,core loop MVP
+Image to image / edit,image,should,yes,no,
+Upscale image,image,should,yes,no,
+Remove background,image,should,yes,no,
+Outpaint / expand,image,could,yes,no,
+Relight / adjust,image,could,yes,no,
+Text to video,video,must,yes,no,core loop MVP
+Image to video,video,must,yes,no,core loop MVP
+Camera / motion presets,video,should,yes,no,
+Upscale video,video,could,yes,no,
+Reframe / resize,video,could,yes,no,
+AI influencer / character,avatar,should,yes,no,consistent character
+Character sheet,avatar,could,yes,no,
+Text to speech,audio,should,yes,no,
+Voice clone / create,audio,could,yes,no,
+Lipsync / dubbing,audio,could,yes,no,
+Product shots,marketing,should,yes,no,
+UGC / ad creatives,marketing,could,yes,no,
+Image to 3D,3d,could,yes,no,
+Virality / video analysis,insights,could,yes,no,
+Export / social publish,publish,should,yes,no,
+Projects & assets,platform,must,yes,no,organise generations
+Accounts & auth,platform,must,yes,no,
+Credits & billing,platform,must,yes,no,Stripe
+Job queue & history,platform,must,yes,no,async jobs
+Pluggable generation provider,platform,must,yes,no,bring-your-own engine/API

@@ -1,0 +1,23 @@
+# Render Blueprint — deploy with one click from your GitHub repo.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: studio
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: NODE_ENV
+        value: production
+      # Set this in the Render dashboard (Environment tab). Never commit it.
+      - key: GEMINI_API_KEY
+        sync: false
+      # Optional — for real Stripe checkout. Leave blank for dev-mode credits.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
