@@ -1,13 +1,15 @@
 :root {
-  --bg: #0b0a10;
-  --surface: #16141f;
-  --surface-2: #201d2e;
-  --border: #2e2a40;
-  --text: #ece9f5;
-  --muted: #a39fb5;
-  --accent: #ff7a59;
-  --accent-2: #a855f7;
-  --danger: #ff6b6b;
+  /* Bela Top palette (light theme) */
+  --bg: #ffffff;
+  --surface: #fdf2f8;      /* rosa ultrassuave — cards e seções */
+  --surface-2: #fce7f3;    /* rosa suave — badges */
+  --border: #f9a8d4;       /* rosa claro — bordas */
+  --text: #1f1b1e;         /* quase-preto */
+  --muted: #9d6b86;        /* rosa acinzentado */
+  --accent: #ec4899;       /* rosa pink principal */
+  --accent-hover: #db2777; /* rosa escuro — hover */
+  --accent-2: #7c3aed;     /* violeta — destaque secundário */
+  --danger: #e11d48;
   --radius: 16px;
 }
 
