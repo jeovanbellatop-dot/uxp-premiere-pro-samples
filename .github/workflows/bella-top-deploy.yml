@@ -1,0 +1,52 @@
+# "Garçom automático" do Bella Top: a cada mudança no app, roda os testes e,
+# se todos passarem, manda o Render publicar a versão nova.
+# Configuração única: segredo RENDER_DEPLOY_HOOK_URL (Render → bella-top → Settings → Deploy Hook).
+name: Bella Top — testar e publicar no Render
+
+on:
+  push:
+    branches: [claude/jolly-clarke-otvfyi]
+    paths: ['bella-top/**', '.github/workflows/bella-top-deploy.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: bella-top-deploy
+  cancel-in-progress: true
+
+jobs:
+  testar-e-publicar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bella-top
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bella-top/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Conferir o código (tipos)
+        run: npm run lint
+
+      - name: Rodar os testes (banco simulado, nunca o real)
+        run: npm test
+
+      - name: Montar o app
+        run: npm run build
+
+      - name: Pedir ao Render para publicar
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::Falta o segredo RENDER_DEPLOY_HOOK_URL no GitHub (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+          echo "Render avisado: a versão nova está sendo publicada."
