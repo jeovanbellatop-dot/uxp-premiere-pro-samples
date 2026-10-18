@@ -1,0 +1,18 @@
+# One-click Render Blueprint for the Studio app (lives in ./studio).
+services:
+  - type: web
+    name: studio
+    runtime: node
+    plan: free
+    branch: claude/hopeful-bardeen-ubalm3
+    rootDir: studio
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20.18.0"
+      # You'll paste your key here during the one-click setup.
+      - key: GEMINI_API_KEY
+        sync: false
