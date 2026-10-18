@@ -45,3 +45,19 @@ Precisa de Node 22 e das variáveis do `.env.example` (principalmente `GOOGLE_SE
 - `npm run test:sim` — só a simulação ponta a ponta (PDF → PCP → máquinas → expedição).
 - `npm run test:live` — integração com Firestore/Storage/Drive **reais**; grava e apaga dados (Limpeza de Histórico).
   Fica bloqueada a menos que `BELLATOP_LIVE_TESTS=1`. Use só com um projeto Firebase de teste, nunca o da fábrica.
+
+## Logins de teste
+
+Cria um login por posto (PCP, Refile, Flexografia, Estamparia, Máquinas 2/3/4, Acabamento, Terceirizado e Expedição),
+com senhas aleatórias, pela API do app publicado. Só precisa de um login de administrador:
+
+```
+BELLATOP_URL=https://seu-app.onrender.com ADMIN_USER=master ADMIN_PASS=suaSenha npm run users:test
+```
+
+- A lista sai no terminal e em `logins-teste.csv` (fora do Git). Rodar de novo renova as senhas.
+- `npm run users:test -- --remover` desativa todos os logins `teste_*`.
+- O script avisa se alguma conta antiga ainda aceita senha padrão (`admin123`/`123456`);
+  `npm run users:test -- --trocar-senhas-padrao` troca essas senhas por aleatórias (salvas em `senhas-trocadas.csv`).
+- O servidor não cria mais contas com senha fixa. No primeiro boot ele cria só o `master`, com senha temporária
+  impressa uma vez no log. Contas de demonstração só com `BELLATOP_SEED_DEMO_USERS=1`.

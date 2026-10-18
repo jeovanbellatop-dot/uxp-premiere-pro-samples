@@ -14,7 +14,8 @@
     "test:media": "tsx tests/orderMedia.test.ts",
     "test:sync": "tsx tests/orderSync.test.ts",
     "test:sim": "tsx tests/endToEndSimulation.test.ts 50",
-    "test:live": "tsx tests/productionFlow.test.ts"
+    "test:live": "tsx tests/productionFlow.test.ts",
+    "users:test": "tsx scripts/createTestUsers.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

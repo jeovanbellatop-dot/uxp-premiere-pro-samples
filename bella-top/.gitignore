@@ -7,3 +7,5 @@ coverage/
 .env*
 !.env.example
 .master_temp_password.txt
+logins-teste.csv
+senhas-trocadas.csv

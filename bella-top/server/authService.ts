@@ -153,6 +153,10 @@ export class ServerAuthService {
    * Garante que todas as contas de usuário padrão da fábrica existam no Firestore
    */
   public static async ensureDefaultUsers(): Promise<void> {
+    // As senhas abaixo estao no codigo-fonte publico: criar essas contas num servidor
+    // real abre o sistema para qualquer um. So para ambientes de demonstracao.
+    if (process.env.BELLATOP_SEED_DEMO_USERS !== '1') return;
+
     const db = getFirestoreDb();
     const usersCol = db.collection('usuarios');
     const now = new Date().toISOString();
