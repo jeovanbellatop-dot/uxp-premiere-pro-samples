@@ -50,10 +50,10 @@ export const TOOLS: Tool[] = [
     placeholder: "Bem-vindo ao futuro da criação." },
 
   // Vídeo (Veo 3.1)
-  { slug: "text-to-video", name: "Texto → Vídeo", area: "Vídeo", kind: "video", cost: 20,
+  { slug: "text-to-video", name: "Texto → Vídeo", area: "Vídeo", kind: "video", cost: 10,
     description: "Gere um clipe de vídeo a partir de um texto.", available: true,
     placeholder: "Um café fumegante numa mesa de madeira, câmera aproximando devagar" },
-  { slug: "image-to-video", name: "Imagem → Vídeo", area: "Vídeo", kind: "video", cost: 20,
+  { slug: "image-to-video", name: "Imagem → Vídeo", area: "Vídeo", kind: "video", cost: 10,
     description: "Anime uma imagem parada com um movimento.", needsImage: true, available: true,
     placeholder: "Faça o personagem acenar e o fundo se mover suavemente" },
 ];

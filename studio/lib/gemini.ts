@@ -10,7 +10,10 @@ export const MODELS = {
   textPro: "gemini-pro-latest",
   image: "gemini-3.1-flash-image",
   tts: "gemini-3.8-flash-tts",
-  video: "veo-3.1-generate-preview",
+  // Prefer the cheaper "fast" video model; fall back to the standard one if the
+  // key doesn't have it. Fast is much cheaper per clip.
+  video: "veo-3.1-fast-generate-preview",
+  videoFallback: "veo-3.1-generate-preview",
 } as const;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -101,12 +104,19 @@ export async function generateVideo(
 ): Promise<string> {
   const instance: Record<string, unknown> = { prompt: prompt || "animate this" };
   if (reference) instance.image = { bytesBase64Encoded: reference.data, mimeType: reference.mimeType };
+  const body = JSON.stringify({ instances: [instance] });
 
-  const startRes = await fetch(`${BASE}/models/${MODELS.video}:predictLongRunning?key=${key()}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ instances: [instance] }),
-  });
+  async function start(model: string) {
+    return fetch(`${BASE}/models/${model}:predictLongRunning?key=${key()}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+  }
+
+  // Try the cheaper "fast" model; if the key doesn't have it (404), use standard.
+  let startRes = await start(MODELS.video);
+  if (startRes.status === 404) startRes = await start(MODELS.videoFallback);
   if (!startRes.ok) {
     throw new Error(`Falha ao iniciar o vídeo (${startRes.status}): ${(await startRes.text()).slice(0, 300)}`);
   }

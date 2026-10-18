@@ -117,6 +117,13 @@ function Runner({
   }
 
   async function run() {
+    if (tool.kind === "video") {
+      const ok = window.confirm(
+        "Gerar vídeo consome bem mais da sua cota paga do Google do que imagem ou texto. " +
+        "Cada clipe tem custo real na sua conta. Deseja continuar?",
+      );
+      if (!ok) return;
+    }
     setLoading(true); setError(undefined); setResult(null);
     try {
       const res = await fetch("/api/generate", {
