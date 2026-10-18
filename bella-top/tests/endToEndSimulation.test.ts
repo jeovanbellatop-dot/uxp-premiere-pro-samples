@@ -57,7 +57,7 @@ const USERS = [
   mkUser('u_joao', 'João M2', 'joao', 'OPERATOR', ['CORTE_SOLDA'], ['m2-corte-solda']),
   mkUser('u_bia', 'Bia Acabamento', 'bia', 'OPERATOR', ['ALCA'], ['workstation_proc_colocar_alca', 'workstation_proc_cordao_manual', 'workstation_proc_costura']),
   mkUser('u_terc', 'Recebimento Terceirizado', 'terceiro', 'OPERATOR', ['ALCA'], ['workstation_proc_terceirizado']),
-  mkUser('u_carlos', 'Carlos', 'carlos', 'EXPEDITION', ['EXPEDICAO'], []),
+  mkUser('u_carlos', 'Carlos', 'carlos', 'EXPEDITION', ['EXPEDICAO'], ['workstation_proc_expedicao']),
 ];
 
 // ---------------------------------------------------------------------------
@@ -315,9 +315,10 @@ async function main() {
           login(keepOp, machineId!);
         }
       } else if (step.processTypeId === 'proc_expedicao') {
-        store.logoutMachineOperator();
-        const r = store.login('carlos', PASSWORD);
+        // Mesmo caminho do botão "Expedição" da tela de entrada.
+        const r = login('u_carlos', 'workstation_proc_expedicao');
         check(r.success, `${stag}: Carlos não conseguiu entrar na Expedição (${r.error})`);
+        check(store.getSelectedSector() === 'EXPEDICAO', `${stag}: posto da Expedição não abriu o setor EXPEDICAO (${store.getSelectedSector()})`);
         operatorId = 'u_carlos';
       } else {
         check(machineId, `${stag}: etapa sem máquina definida`);

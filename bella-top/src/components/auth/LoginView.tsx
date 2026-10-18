@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronDown,
   CheckCircle2,
-  Factory
+  Factory,
+  Package
 } from 'lucide-react';
 import { useMesStore } from '../../hooks/useMesStore';
 import { mesStore } from '../../services/mesStore';
@@ -98,6 +99,14 @@ const STATIONS: TargetStation[] = [
     sector: 'Corte e Solda',
     code: 'CS-04',
     icon: Cpu,
+    type: 'MACHINE',
+  },
+  {
+    id: 'workstation_proc_expedicao',
+    name: 'Expedição',
+    sector: 'Embalagem e Despacho',
+    code: 'EXP-01',
+    icon: Package,
     type: 'MACHINE',
   },
 ];
