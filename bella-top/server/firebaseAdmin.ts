@@ -25,35 +25,73 @@ function parseServiceAccount(): Record<string, any> | null {
   return sa ? normalizeServiceAccount(sa) : null;
 }
 
-function parseServiceAccountRaw(): Record<string, any> | null {
-  const rawKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '';
-  if (!rawKey || !rawKey.trim()) {
-    return null;
-  }
+/** Conserta estragos comuns ao colar o .json num painel: aspas curvas e quebras de linha reais na chave privada. */
+function repairPastedJson(text: string): string {
+  return text
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/-----BEGIN PRIVATE KEY-----[\s\S]*?-----END PRIVATE KEY-----\s*/g, (block) => block.replace(/\r?\n/g, '\\n'));
+}
 
-  // Aspas em volta do valor inteiro (coladas junto no painel) atrapalham a leitura.
-  const trimmed = rawKey.trim().replace(/^'([\s\S]*)'$/, '$1');
-
-  // 1. JSON direto
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+function tryParseJsonObject(text: string): Record<string, any> | null {
+  for (const candidate of [text, repairPastedJson(text)]) {
     try {
-      return JSON.parse(trimmed);
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
     } catch {
-      // continua para tentativa base64
+      // tenta a próxima forma
     }
+  }
+  return null;
+}
+
+function readKeyText(): string {
+  // Aspas em volta do valor inteiro (coladas junto no painel) atrapalham a leitura.
+  return (process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '').trim().replace(/^'([\s\S]*)'$/, '$1');
+}
+
+function parseServiceAccountRaw(): Record<string, any> | null {
+  const trimmed = readKeyText();
+  if (!trimmed) return null;
+
+  // 1. JSON direto (inclusive colado com aspas curvas ou quebras de linha na chave)
+  if (trimmed.startsWith('{')) {
+    const parsed = tryParseJsonObject(trimmed);
+    if (parsed) return parsed;
   }
 
   // 2. Base64
   try {
     const decoded = Buffer.from(trimmed, 'base64').toString('utf-8').trim();
-    if (decoded.startsWith('{') && decoded.endsWith('}')) {
-      return JSON.parse(decoded);
-    }
+    if (decoded.startsWith('{')) return tryParseJsonObject(decoded);
   } catch {
     // fallback
   }
 
   return null;
+}
+
+/** Diz o que foi colado em GOOGLE_SERVICE_ACCOUNT_KEY, sem revelar o conteúdo. */
+export function describeServiceAccountKey(): string {
+  const text = readKeyText();
+  if (!text) return 'A variável GOOGLE_SERVICE_ACCOUNT_KEY não existe ou está vazia no Render.';
+  const parsed = parseServiceAccountRaw();
+  if (!parsed) {
+    if (/-----BEGIN PRIVATE KEY-----/.test(text) && !text.startsWith('{')) {
+      return 'Foi colada só a chave privada (o trecho BEGIN PRIVATE KEY). É preciso colar o arquivo .json inteiro, do { até o }.';
+    }
+    if (!text.startsWith('{')) {
+      return `O valor colado não é um JSON (começa com "${text.slice(0, 1)}" e tem ${text.length} caracteres). Cole o arquivo .json inteiro da conta de serviço, do { até o }.`;
+    }
+    return `O valor parece um JSON (${text.length} caracteres), mas está quebrado ou incompleto${text.endsWith('}') ? '' : ' (não termina com })'}. Baixe o .json de novo e cole o arquivo inteiro, sem editar.`;
+  }
+  if (parsed.apiKey || parsed.authDomain) {
+    return 'Foi colada a configuração web do Firebase (apiKey/authDomain), que não serve para o servidor. Use a chave de conta de serviço: Firebase → Configurações do projeto → Contas de serviço → Gerar nova chave privada.';
+  }
+  const missing = ['type', 'project_id', 'private_key', 'client_email'].filter((f) => !parsed[f]);
+  if (missing.length || parsed.type !== 'service_account') {
+    return `O JSON colado não é uma chave de conta de serviço (faltam: ${missing.join(', ') || 'type = service_account'}; campos encontrados: ${Object.keys(parsed).slice(0, 8).join(', ')}). Gere a chave em Firebase → Configurações do projeto → Contas de serviço → Gerar nova chave privada.`;
+  }
+  return 'Chave de conta de serviço válida.';
 }
 
 export function getFirebaseAdminApp(): App {
@@ -96,10 +134,8 @@ export function getFirestoreDatabaseId(): string | undefined {
 export function explainFirestoreError(err: any): string {
   const msg = String(err?.message || err || '');
   const code = err?.code;
-  if (/GOOGLE_SERVICE_ACCOUNT_KEY não configurada/i.test(msg)) {
-    return process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-      ? 'A variável GOOGLE_SERVICE_ACCOUNT_KEY existe no Render, mas o valor não é um JSON de conta de serviço válido. Cole o conteúdo inteiro do arquivo .json baixado do Firebase (começa com { e termina com }).'
-      : 'A variável GOOGLE_SERVICE_ACCOUNT_KEY não existe no Render. Crie-a em Environment com o conteúdo do arquivo .json da conta de serviço do Firebase.';
+  if (/GOOGLE_SERVICE_ACCOUNT_KEY não configurada|private_key|client_email|project_id/i.test(msg)) {
+    return describeServiceAccountKey();
   }
   if (code === 5 || /NOT_FOUND/i.test(msg)) {
     return `O banco Firestore "${getFirestoreDatabaseId() || '(default)'}" não foi encontrado neste projeto. Se o seu banco tem outro nome (ID do banco no console do Firebase), defina FIRESTORE_DATABASE_ID no Render com esse nome; se não existe banco, crie o Firestore no console do Firebase.`;
@@ -121,6 +157,7 @@ export async function diagnoseFirestore(): Promise<Record<string, any>> {
   const base = {
     chaveConfigurada: keyPresent,
     chaveValida: Boolean(sa && sa.private_key && sa.client_email),
+    chave: describeServiceAccountKey(),
     projeto: sa?.project_id || process.env.FIREBASE_PROJECT_ID || null,
     banco: getFirestoreDatabaseId() || '(default)',
   };
