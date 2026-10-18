@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { currentUser } from "@/lib/auth";
+import { currentUser } from "../lib/auth";
 
 export default function Landing() {
   const user = currentUser();

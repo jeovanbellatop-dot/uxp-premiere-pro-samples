@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { currentUser } from "@/lib/auth";
-import { getAssets, getProjects } from "@/lib/store";
-import Studio from "@/components/Studio";
+import { currentUser } from "../../lib/auth";
+import { getAssets, getProjects } from "../../lib/store";
+import Studio from "../../components/Studio";
 
 export const dynamic = "force-dynamic";
 

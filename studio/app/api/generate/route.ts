@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTool } from "@/lib/tools";
-import { generateText, generateImage, analyzeImage, textToSpeech } from "@/lib/gemini";
-import { currentUser } from "@/lib/auth";
+import { getTool } from "../../../lib/tools";
+import { generateText, generateImage, analyzeImage, textToSpeech } from "../../../lib/gemini";
+import { currentUser } from "../../../lib/auth";
 import {
   getCredits, spendCredits, saveDataUrl, addAsset,
   createJob, finishJob, failJob,
-} from "@/lib/store";
+} from "../../../lib/store";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;

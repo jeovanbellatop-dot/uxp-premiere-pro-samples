@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, stripeEnabled } from "@/lib/billing";
-import { addCredits } from "@/lib/store";
-import { db } from "@/lib/db";
+import { stripe, stripeEnabled } from "../../../../lib/billing";
+import { addCredits } from "../../../../lib/store";
+import { db } from "../../../../lib/db";
 
 export const runtime = "nodejs";
 

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { currentUser } from "@/lib/auth";
-import { PACKS, stripeEnabled } from "@/lib/billing";
-import BillingClient from "@/components/BillingClient";
+import { currentUser } from "../../lib/auth";
+import { PACKS, stripeEnabled } from "../../lib/billing";
+import BillingClient from "../../components/BillingClient";
 
 export const dynamic = "force-dynamic";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { TOOLS, type Tool } from "@/lib/tools";
+import { TOOLS, type Tool } from "../lib/tools";
 import AppNav from "./AppNav";
 
 interface User { id: string; email: string; name: string | null; credits: number; }

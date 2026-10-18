@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { currentUser } from "@/lib/auth";
-import { stripeEnabled } from "@/lib/billing";
-import AppNav from "@/components/AppNav";
+import { currentUser } from "../../lib/auth";
+import { stripeEnabled } from "../../lib/billing";
+import AppNav from "../../components/AppNav";
 
 export const dynamic = "force-dynamic";
 

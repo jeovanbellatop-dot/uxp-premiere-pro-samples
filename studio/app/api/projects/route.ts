@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@/lib/auth";
-import { getProjects, createProject, assignAssetToProject } from "@/lib/store";
+import { currentUser } from "../../../lib/auth";
+import { getProjects, createProject, assignAssetToProject } from "../../../lib/store";
 
 export const runtime = "nodejs";
 
