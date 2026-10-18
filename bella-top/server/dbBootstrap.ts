@@ -32,6 +32,14 @@ export async function initializeFirestoreDatabase(): Promise<BootstrapResult> {
   const timestamp = new Date().toISOString();
   const details: Record<string, number> = {};
 
+  // 0. Usuários primeiro e isolados: uma falha nos passos seguintes não pode deixar a fábrica sem login.
+  try {
+    await ServerAuthService.ensureMasterUser();
+    await ServerAuthService.ensureDefaultUsers();
+  } catch (err: any) {
+    console.error('[Bella Top MES] Falha ao cadastrar os usuários padrão:', err?.message || err);
+  }
+
   let projectId = process.env.FIREBASE_PROJECT_ID || 'bella-top-producao-2';
   try {
     const key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -183,10 +191,7 @@ export async function initializeFirestoreDatabase(): Promise<BootstrapResult> {
     // ignore
   }
 
-  // 9. Cadastro de Usuários no Firestore: Garante Master e contas padrão
-  await ServerAuthService.ensureMasterUser();
-  await ServerAuthService.ensureDefaultUsers();
-
+  // 9. Usuários: já garantidos no passo 0.
   details['usuarios'] = (await db.collection('usuarios').count().get()).data().count;
   details['ops'] = (await db.collection('ops').count().get()).data().count;
   details['arquivos'] = (await db.collection('arquivos').count().get()).data().count;

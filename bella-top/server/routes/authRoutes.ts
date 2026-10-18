@@ -33,7 +33,20 @@ authRoutes.post('/login', async (req: Request, res: Response) => {
 // GET /api/auth/login-options - Lista pública (sem senhas) de usuários ativos para os seletores da tela de login
 authRoutes.get('/login-options', async (_req: Request, res: Response) => {
   try {
-    const snap = await getFirestoreDb().collection('usuarios').get();
+    const usersCol = getFirestoreDb().collection('usuarios');
+    let snap = await usersCol.get();
+    const hasActiveAdmin = (docs: any[]) =>
+      docs.some((d: any) => {
+        const u = d.data() || {};
+        return u.isActive !== false && (u.role === 'ADMIN' || u.role === 'MASTER' || (Array.isArray(u.sectors) && u.sectors.includes('ADMIN')));
+      });
+    // Modo de teste num banco ainda sem administrador (ex.: a preparação do banco falhou ou
+    // ainda não terminou): cadastra os logins da fábrica agora, para a tela não ficar travada.
+    if (isOpenAccessMode() && !hasActiveAdmin(snap.docs)) {
+      await ServerAuthService.ensureMasterUser();
+      await ServerAuthService.ensureDefaultUsers();
+      snap = await usersCol.get();
+    }
     const users = snap.docs
       .map((d: any) => {
         const { passwordHash, passwordSalt, ...safe } = d.data() || {};
@@ -43,7 +56,12 @@ authRoutes.get('/login-options', async (_req: Request, res: Response) => {
     return res.json({ success: true, users, openAccess: isOpenAccessMode() });
   } catch (err: any) {
     console.error('[AuthRoutes] Erro ao listar opções de login:', err);
-    return res.status(500).json({ success: false, users: [], openAccess: isOpenAccessMode() });
+    return res.status(500).json({
+      success: false,
+      users: [],
+      openAccess: isOpenAccessMode(),
+      error: 'O servidor não conseguiu ler os usuários no banco de dados (Firebase). Confira a chave GOOGLE_SERVICE_ACCOUNT_KEY no Render.',
+    });
   }
 });
 

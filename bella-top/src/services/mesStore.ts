@@ -881,22 +881,56 @@ class MesStore {
   }
 
   /**
+   * Busca de novo a lista de usuários, na hora (chamada síncrona, como a validação de senha).
+   * A lista carregada na abertura da tela pode estar vazia se o servidor ainda estava acordando.
+   */
+  private reloadLoginOptionsNow(): string | null {
+    if (typeof window === 'undefined' || typeof XMLHttpRequest === 'undefined') return null;
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/auth/login-options', false);
+      xhr.send();
+      const data = JSON.parse(xhr.responseText || '{}');
+      if (typeof data.openAccess === 'boolean') this.openAccess = data.openAccess;
+      if (Array.isArray(data.users) && data.users.length > 0) {
+        this.users = data.users as User[];
+        this.users.forEach((usr) => this.userShadow.set(usr.id, JSON.stringify(usr)));
+        this.notify();
+      }
+      return xhr.status === 200 ? null : data.error || `Servidor respondeu com erro ${xhr.status}.`;
+    } catch {
+      return 'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.';
+    }
+  }
+
+  /**
    * Modo sem login: entra na máquina com um operador autorizado para ela
    * (ou com um administrador, se a máquina ainda não tiver operador cadastrado).
    */
   public enterMachineWithoutLogin(machineId: string): { success: boolean; error?: string } {
     if (!this.openAccess) return { success: false, error: 'O modo sem login está desligado.' };
-    const operators = getActiveOperatorsForMachine(this.users, machineId, this.machines);
-    const user = operators.find((u) => !isPrivilegedUser(u)) || operators[0] || getActiveAdministrators(this.users)[0];
-    if (!user) return { success: false, error: 'Nenhum usuário ativo cadastrado para entrar nesta máquina.' };
+    const pickUser = () => {
+      const operators = getActiveOperatorsForMachine(this.users, machineId, this.machines);
+      return operators.find((u) => !isPrivilegedUser(u)) || operators[0] || getActiveAdministrators(this.users)[0];
+    };
+    let user = pickUser();
+    if (!user) {
+      const serverError = this.reloadLoginOptionsNow();
+      user = pickUser();
+      if (!user) return { success: false, error: serverError || 'Nenhum usuário ativo cadastrado para entrar nesta máquina.' };
+    }
     return this.loginMachineOperator(machineId, user.id, MesStore.OPEN_ACCESS_PASSWORD);
   }
 
   /** Modo sem login: entra no painel administrativo com o primeiro administrador ativo. */
   public enterAdminWithoutLogin(): { success: boolean; error?: string } {
     if (!this.openAccess) return { success: false, error: 'O modo sem login está desligado.' };
-    const admin = getActiveAdministrators(this.users)[0];
-    if (!admin) return { success: false, error: 'Nenhum administrador ativo cadastrado.' };
+    let admin = getActiveAdministrators(this.users)[0];
+    if (!admin) {
+      const serverError = this.reloadLoginOptionsNow();
+      admin = getActiveAdministrators(this.users)[0];
+      if (!admin) return { success: false, error: serverError || 'Nenhum administrador ativo cadastrado.' };
+    }
     return this.loginAdministrator(admin.id, MesStore.OPEN_ACCESS_PASSWORD);
   }
 
