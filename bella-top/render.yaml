@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: bella-top
+    runtime: docker
+    rootDir: bella-top
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GOOGLE_SERVICE_ACCOUNT_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DRIVE_ROOT_FOLDER_ID
+        sync: false
+      - key: DRIVE_BRIDGE_URL
+        sync: false
+      - key: DRIVE_BRIDGE_TOKEN
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
