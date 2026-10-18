@@ -32,7 +32,7 @@ import {
 import type { RouteBlueprint } from '../data/initialData';
 import { hashPassword, generateSalt, verifyPassword, normalizeUsername } from '../utils/authCrypto';
 import { compressImageToDataUrl, isBulkyMedia } from '../utils/orderMedia';
-import { isUserAuthorizedForMachine, getActiveAdministrators, isPrivilegedUser } from '../utils/userMachines';
+import { isUserAuthorizedForMachine, getActiveAdministrators, getActiveOperatorsForMachine, isPrivilegedUser } from '../utils/userMachines';
 
 const STORAGE_KEYS = {
   SYNC_STATE: 'bellatop_sync_state_v1',
@@ -803,6 +803,9 @@ class MesStore {
   }
 
   private pendingServerToken: string | null = null;
+  /** Modo de teste sem login, informado pelo servidor (BELLATOP_OPEN_ACCESS=1). */
+  private openAccess = false;
+  private static readonly OPEN_ACCESS_PASSWORD = 'modo-sem-login';
 
   /** Autentica no servidor (Firestore é a fonte da verdade das senhas). */
   private verifyWithServer(user: User, plainPassword: string): boolean {
@@ -861,12 +864,40 @@ class MesStore {
     fetch('/api/auth/login-options', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
+        if (data && typeof data.openAccess === 'boolean' && data.openAccess !== this.openAccess) {
+          this.openAccess = data.openAccess;
+          this.notify();
+        }
         if (!data || !Array.isArray(data.users) || data.users.length === 0) return;
         this.users = data.users as User[];
         this.users.forEach((usr) => this.userShadow.set(usr.id, JSON.stringify(usr)));
         this.notify();
       })
       .catch(() => {});
+  }
+
+  public isOpenAccess(): boolean {
+    return this.openAccess;
+  }
+
+  /**
+   * Modo sem login: entra na máquina com um operador autorizado para ela
+   * (ou com um administrador, se a máquina ainda não tiver operador cadastrado).
+   */
+  public enterMachineWithoutLogin(machineId: string): { success: boolean; error?: string } {
+    if (!this.openAccess) return { success: false, error: 'O modo sem login está desligado.' };
+    const operators = getActiveOperatorsForMachine(this.users, machineId, this.machines);
+    const user = operators.find((u) => !isPrivilegedUser(u)) || operators[0] || getActiveAdministrators(this.users)[0];
+    if (!user) return { success: false, error: 'Nenhum usuário ativo cadastrado para entrar nesta máquina.' };
+    return this.loginMachineOperator(machineId, user.id, MesStore.OPEN_ACCESS_PASSWORD);
+  }
+
+  /** Modo sem login: entra no painel administrativo com o primeiro administrador ativo. */
+  public enterAdminWithoutLogin(): { success: boolean; error?: string } {
+    if (!this.openAccess) return { success: false, error: 'O modo sem login está desligado.' };
+    const admin = getActiveAdministrators(this.users)[0];
+    if (!admin) return { success: false, error: 'Nenhum administrador ativo cadastrado.' };
+    return this.loginAdministrator(admin.id, MesStore.OPEN_ACCESS_PASSWORD);
   }
 
   /** Remove apenas a sessão rejeitada, preservando OPs e alterações ainda pendentes. */

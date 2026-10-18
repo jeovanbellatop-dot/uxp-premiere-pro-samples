@@ -12,6 +12,9 @@ services:
         value: production
       - key: NODE_VERSION
         value: "22"
+      # Modo de teste SEM LOGIN: "1" = toca na máquina e entra; "0" = login com senha.
+      - key: BELLATOP_OPEN_ACCESS
+        value: "1"
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
         sync: false
       - key: OPENAI_API_KEY

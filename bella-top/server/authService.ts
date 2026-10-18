@@ -58,6 +58,14 @@ export function normalizeUsername(input: string): string {
     .trim();
 }
 
+/**
+ * Modo de teste SEM LOGIN (BELLATOP_OPEN_ACCESS=1): qualquer usuário ativo entra sem senha.
+ * Quem tiver o link do app entra. Usar só em testes e desligar antes de usar na fábrica.
+ */
+export function isOpenAccessMode(): boolean {
+  return process.env.BELLATOP_OPEN_ACCESS === '1';
+}
+
 export class ServerAuthService {
   private static sessions: Map<string, SessionData> = new Map();
   private static attempts: Map<string, LoginAttempt> = new Map();
@@ -389,7 +397,7 @@ export class ServerAuthService {
       }
     }
 
-    if (!matchesScrypt && !matchesBrowser) {
+    if (!matchesScrypt && !matchesBrowser && !isOpenAccessMode()) {
       this.recordFailedAttempt(norm);
       ServerAuditService.log({
         action: 'AUTH_LOGIN_FAILED',
@@ -444,14 +452,16 @@ export class ServerAuthService {
       userId: user.id,
       userName: user.name,
       userRole: user.role,
-      details: `Login bem-sucedido: ${user.name} (@${user.login}) [${user.role}]`,
+      details: `Login bem-sucedido: ${user.name} (@${user.login}) [${user.role}]${isOpenAccessMode() ? ' (modo de teste sem login)' : ''}`,
     });
 
+    // No modo sem login não faz sentido exigir troca de senha no primeiro acesso.
+    const mustChangePassword = !isOpenAccessMode() && Boolean(user.mustChangePassword);
     return {
       success: true,
-      user: safeUser,
+      user: { ...safeUser, mustChangePassword },
       token,
-      mustChangePassword: Boolean(user.mustChangePassword),
+      mustChangePassword,
     };
   }
 

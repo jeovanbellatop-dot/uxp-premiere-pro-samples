@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { ServerAuthService } from '../authService';
+import { ServerAuthService, isOpenAccessMode } from '../authService';
 import { getFirestoreDb } from '../firebaseAdmin';
 
 export const authRoutes = Router();
@@ -40,10 +40,10 @@ authRoutes.get('/login-options', async (_req: Request, res: Response) => {
         return safe;
       })
       .filter((u: any) => u && u.isActive !== false);
-    return res.json({ success: true, users });
+    return res.json({ success: true, users, openAccess: isOpenAccessMode() });
   } catch (err: any) {
     console.error('[AuthRoutes] Erro ao listar opções de login:', err);
-    return res.status(500).json({ success: false, users: [] });
+    return res.status(500).json({ success: false, users: [], openAccess: isOpenAccessMode() });
   }
 });
 

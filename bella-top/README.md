@@ -61,3 +61,10 @@ BELLATOP_URL=https://seu-app.onrender.com ADMIN_USER=master ADMIN_PASS=suaSenha 
   `npm run users:test -- --trocar-senhas-padrao` troca essas senhas por aleatórias (salvas em `senhas-trocadas.csv`).
 - O servidor não cria mais contas com senha fixa. No primeiro boot ele cria só o `master`, com senha temporária
   impressa uma vez no log. Contas de demonstração só com `BELLATOP_SEED_DEMO_USERS=1`.
+
+## Modo de teste sem login
+
+Com `BELLATOP_OPEN_ACCESS=1` (já definido no `render.yaml`), a tela de entrada mostra "MODO TESTE":
+tocar numa máquina entra direto com um operador autorizado para ela (ou o administrador, se não houver),
+e o card Administrador entra no painel. Quem tiver o link entra, então use só para testes.
+Para voltar a pedir senha: no Render, em Environment, troque `BELLATOP_OPEN_ACCESS` para `0` (ou apague) e salve.

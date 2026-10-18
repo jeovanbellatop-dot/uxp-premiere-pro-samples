@@ -103,7 +103,16 @@ const STATIONS: TargetStation[] = [
 ];
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
-  const { loginAdministrator, loginMachineOperator, users, machines, allFactoryMachines } = useMesStore();
+  const {
+    loginAdministrator,
+    loginMachineOperator,
+    users,
+    machines,
+    allFactoryMachines,
+    isOpenAccess,
+    enterMachineWithoutLogin,
+    enterAdminWithoutLogin,
+  } = useMesStore();
 
   // Estados de navegação in-place na mesma página
   const [viewStep, setViewStep] = useState<'CARDS' | 'MACHINE_LOGIN' | 'ADMIN_LOGIN'>('CARDS');
@@ -152,6 +161,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     setShowPassword(false);
     setSelectedStation(station);
 
+    // Modo de teste sem login: tocar no posto já entra.
+    if (isOpenAccess && station.type === 'ADMIN') {
+      const res = enterAdminWithoutLogin();
+      if (res.success) onLoginSuccess(!!(res as any).requiresSectorSelection, undefined);
+      else setErrorMessage(res.error || 'Não foi possível entrar.');
+      return;
+    }
+
     if (station.type === 'ADMIN') {
       setSelectedAdminId('');
       setAdminPassword('');
@@ -163,6 +180,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       );
       if (foundMachine && (foundMachine.status === 'INATIVA' || !foundMachine.isActive || foundMachine.id === 'm1-corte-solda')) {
         setErrorMessage('Esta máquina está indisponível para acesso.');
+        return;
+      }
+      if (isOpenAccess) {
+        const res = enterMachineWithoutLogin(station.id);
+        if (res.success) onLoginSuccess(false, station.id);
+        else setErrorMessage(res.error || 'Não foi possível entrar nesta máquina.');
         return;
       }
       setSelectedOperatorId('');
@@ -349,12 +372,29 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             <div className="border-b border-[#E5DAD3] pb-4 mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-[#1C1418]">Acesso ao Sistema</h2>
-                <p className="text-xs text-[#6E615B] mt-0.5">Selecione o seu posto de trabalho ou o painel administrativo</p>
+                <p className="text-xs text-[#6E615B] mt-0.5">
+                  {isOpenAccess
+                    ? 'Toque no posto para entrar direto (sem senha)'
+                    : 'Selecione o seu posto de trabalho ou o painel administrativo'}
+                </p>
               </div>
-              <span className="px-2.5 py-1 bg-[#FFF5FA] text-[#E30A78] border border-[#F5C6DC] rounded-full text-[11px] font-mono font-bold">
-                RBAC v2.6
-              </span>
+              {isOpenAccess ? (
+                <span className="px-2.5 py-1 bg-[#FFF4DB] text-[#7A4A00] border border-[#E8B54A] rounded-full text-[11px] font-bold">
+                  MODO TESTE
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 bg-[#FFF5FA] text-[#E30A78] border border-[#F5C6DC] rounded-full text-[11px] font-mono font-bold">
+                  RBAC v2.6
+                </span>
+              )}
             </div>
+
+            {isOpenAccess && (
+              <div className="mb-5 p-3 bg-[#FFF4DB] border border-[#E8B54A] rounded-2xl text-[#5C3800] text-xs leading-relaxed">
+                <span className="font-bold block mb-0.5">Modo de teste: login desligado</span>
+                Qualquer pessoa com o link entra sem senha. Desligue antes de usar na produção.
+              </div>
+            )}
 
             {/* Banner de Erro caso uma máquina inativa tenha sido clicada */}
             {errorMessage && (
