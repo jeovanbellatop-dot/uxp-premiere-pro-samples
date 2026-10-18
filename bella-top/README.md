@@ -68,3 +68,8 @@ Com `BELLATOP_OPEN_ACCESS=1` (já definido no `render.yaml`), a tela de entrada 
 tocar numa máquina entra direto com um operador autorizado para ela (ou o administrador, se não houver),
 e o card Administrador entra no painel. Quem tiver o link entra, então use só para testes.
 Para voltar a pedir senha: no Render, em Environment, troque `BELLATOP_OPEN_ACCESS` para `0` (ou apague) e salve.
+
+Com o modo de teste ligado, o servidor cadastra ao iniciar os logins da fábrica que faltarem (sem senha conhecida):
+master, admin, robson (PCP), elton (Refiladeira + Flexografia), toninho (Máquinas 2/3/4), ueltom (Refiladeira),
+teste (Refiladeira + Máquinas 2/3/4), welton (Refiladeira), gabriel (Flexografia), viola (Carrossel e Carrossel Pequena)
+e carlos (Expedição). Antes de desligar o modo de teste, defina as senhas reais pela tela de usuários.

@@ -161,13 +161,16 @@ export class ServerAuthService {
    * Garante que todas as contas de usuário padrão da fábrica existam no Firestore
    */
   public static async ensureDefaultUsers(): Promise<void> {
-    // As senhas abaixo estao no codigo-fonte publico: criar essas contas num servidor
-    // real abre o sistema para qualquer um. So para ambientes de demonstracao.
-    if (process.env.BELLATOP_SEED_DEMO_USERS !== '1') return;
+    // So no modo de teste (ou com BELLATOP_SEED_DEMO_USERS=1): cria os logins da fabrica
+    // que faltarem. Nao existe senha conhecida: cada conta recebe uma senha aleatoria que
+    // ninguem ve. No modo sem login ela nao e usada; para voltar o login, o administrador
+    // define as senhas pela tela de usuarios.
+    if (!isOpenAccessMode() && process.env.BELLATOP_SEED_DEMO_USERS !== '1') return;
 
     const db = getFirestoreDb();
     const usersCol = db.collection('usuarios');
     const now = new Date().toISOString();
+    const CORTE_SOLDA = ['m2-corte-solda', 'm3-corte-solda', 'm4-corte-solda'];
 
     const defaults: Array<{
       id: string;
@@ -177,75 +180,27 @@ export class ServerAuthService {
       sectors: SystemSectorCode[];
       jobTitle: string;
       sector: string;
-      defaultPass: string;
+      machines: string[];
     }> = [
-      {
-        id: 'user_admin',
-        name: 'Administrador Bella Top',
-        login: 'admin',
-        role: 'ADMIN',
-        sectors: ['ADMIN', 'PCP'],
-        jobTitle: 'Administrador Geral',
-        sector: 'ADMIN',
-        defaultPass: 'admin123',
-      },
-      {
-        id: 'user_robson',
-        name: 'Robson Silva',
-        login: 'robson',
-        role: 'PCP',
-        sectors: ['PCP'],
-        jobTitle: 'Planejamento e Controle de Produção',
-        sector: 'PCP',
-        defaultPass: 'admin123',
-      },
-      {
-        id: 'user_elton',
-        name: 'Elton Silva',
-        login: 'elton',
-        role: 'OPERATOR',
-        sectors: ['REFILE', 'FLEXOGRAFIA'],
-        jobTitle: 'Operador de Refile e Flexografia',
-        sector: 'REFILE',
-        defaultPass: '123456',
-      },
-      {
-        id: 'user_toninho',
-        name: 'Toninho Santos',
-        login: 'toninho',
-        role: 'OPERATOR',
-        sectors: ['CORTE_SOLDA', 'ALCA'],
-        jobTitle: 'Supervisor e Operador de Corte e Solda',
-        sector: 'CORTE_SOLDA',
-        defaultPass: '123456',
-      },
-      {
-        id: 'user_ueltom',
-        name: 'Ueltom Oliveira',
-        login: 'ueltom',
-        role: 'OPERATOR',
-        sectors: ['REFILE'],
-        jobTitle: 'Operador de Refile',
-        sector: 'REFILE',
-        defaultPass: '123456',
-      },
-      {
-        id: 'user_teste',
-        name: 'Operador de Teste',
-        login: 'teste',
-        role: 'OPERATOR',
-        sectors: ['CORTE_SOLDA', 'REFILE'],
-        jobTitle: 'Operador Geral de Testes',
-        sector: 'CORTE_SOLDA',
-        defaultPass: '123456',
-      },
+      // Logins que ja existiam na versao original do sistema
+      { id: 'user_admin', name: 'Administrador Bella Top', login: 'admin', role: 'ADMIN', sectors: ['ADMIN', 'PCP'], jobTitle: 'Administrador Geral', sector: 'ADMIN', machines: ['*'] },
+      { id: 'user_robson', name: 'Robson Silva', login: 'robson', role: 'PCP', sectors: ['PCP'], jobTitle: 'Planejamento e Controle de Produção', sector: 'PCP', machines: ['*'] },
+      { id: 'user_elton', name: 'Elton Silva', login: 'elton', role: 'OPERATOR', sectors: ['REFILE', 'FLEXOGRAFIA'], jobTitle: 'Operador de Refile e Flexografia', sector: 'REFILE', machines: ['REFILADEIRA_01', 'FLEXOGRAFIA_01'] },
+      { id: 'user_toninho', name: 'Toninho Santos', login: 'toninho', role: 'OPERATOR', sectors: ['CORTE_SOLDA', 'ALCA'], jobTitle: 'Supervisor e Operador de Corte e Solda', sector: 'CORTE_SOLDA', machines: CORTE_SOLDA },
+      { id: 'user_ueltom', name: 'Ueltom Oliveira', login: 'ueltom', role: 'OPERATOR', sectors: ['REFILE'], jobTitle: 'Operador de Refile', sector: 'REFILE', machines: ['REFILADEIRA_01'] },
+      { id: 'user_teste', name: 'Operador de Teste', login: 'teste', role: 'OPERATOR', sectors: ['CORTE_SOLDA', 'REFILE'], jobTitle: 'Operador Geral de Testes', sector: 'CORTE_SOLDA', machines: ['REFILADEIRA_01', ...CORTE_SOLDA] },
+      // Responsaveis citados na memoria operacional (server/memory.ts)
+      { id: 'user_welton', name: 'Welton', login: 'welton', role: 'OPERATOR', sectors: ['REFILE'], jobTitle: 'Responsável Operacional do Refile', sector: 'REFILE', machines: ['REFILADEIRA_01'] },
+      { id: 'user_gabriel', name: 'Gabriel', login: 'gabriel', role: 'OPERATOR', sectors: ['FLEXOGRAFIA'], jobTitle: 'Responsável Operacional da Flexografia', sector: 'FLEXOGRAFIA', machines: ['FLEXOGRAFIA_01'] },
+      { id: 'user_viola', name: 'Viola', login: 'viola', role: 'OPERATOR', sectors: ['ESTAMPARIA'], jobTitle: 'Responsável da Estamparia / Carrossel', sector: 'ESTAMPARIA', machines: ['CARROSSEL_01', 'CARROSSEL_PEQUENA_01'] },
+      { id: 'user_carlos', name: 'Carlos', login: 'carlos', role: 'EXPEDITION', sectors: ['EXPEDICAO'], jobTitle: 'Expedição', sector: 'EXPEDICAO', machines: ['workstation_proc_expedicao'] },
     ];
 
     for (const def of defaults) {
       const existing = await this.getUserByLogin(def.login);
       if (!existing) {
         const salt = generateSalt();
-        const pHash = hashPassword(def.defaultPass, salt);
+        const pHash = hashPassword(crypto.randomBytes(24).toString('hex'), salt);
         const newUser: ServerUser = {
           id: def.id,
           name: def.name,
@@ -257,7 +212,7 @@ export class ServerAuthService {
           role: def.role,
           jobTitle: def.jobTitle,
           sector: def.sector,
-          authorizedMachineIds: ['*'],
+          authorizedMachineIds: def.machines,
           shift: 'TURNO_1',
           isActive: true,
           mustChangePassword: false,
@@ -265,6 +220,14 @@ export class ServerAuthService {
           updatedAt: now,
         };
         await usersCol.doc(def.id).set(newUser);
+      } else if (
+        def.role === 'OPERATOR' &&
+        Array.isArray(existing.authorizedMachineIds) &&
+        existing.authorizedMachineIds.length === 1 &&
+        existing.authorizedMachineIds[0] === '*'
+      ) {
+        // Versao original gravava '*' para operador, que o sistema nao aceita: corrige para as maquinas do setor.
+        await usersCol.doc(existing.id).update({ authorizedMachineIds: def.machines, updatedAt: now });
       }
     }
   }
