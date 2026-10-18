@@ -2,7 +2,7 @@
 // can actually do. `kind` decides which output the UI shows; `available: false`
 // tools render as "coming soon" (they need an engine the key doesn't have yet).
 
-export type ToolKind = "image" | "image-edit" | "text" | "vision" | "audio";
+export type ToolKind = "image" | "image-edit" | "text" | "vision" | "audio" | "video";
 
 export interface Tool {
   slug: string;
@@ -49,11 +49,13 @@ export const TOOLS: Tool[] = [
     description: "Transforme um texto em voz falada.", available: true,
     placeholder: "Bem-vindo ao futuro da criação." },
 
-  // Ainda indisponível nesta chave
-  { slug: "text-to-video", name: "Texto → Vídeo", area: "Vídeo", kind: "image", cost: 20,
-    description: "Gerar um clipe de vídeo. Precisa de uma chave com Veo.", available: false },
-  { slug: "image-to-video", name: "Imagem → Vídeo", area: "Vídeo", kind: "image", cost: 20,
-    description: "Animar uma imagem parada. Precisa de uma chave com Veo.", available: false },
+  // Vídeo (Veo 3.1)
+  { slug: "text-to-video", name: "Texto → Vídeo", area: "Vídeo", kind: "video", cost: 20,
+    description: "Gere um clipe de vídeo a partir de um texto.", available: true,
+    placeholder: "Um café fumegante numa mesa de madeira, câmera aproximando devagar" },
+  { slug: "image-to-video", name: "Imagem → Vídeo", area: "Vídeo", kind: "video", cost: 20,
+    description: "Anime uma imagem parada com um movimento.", needsImage: true, available: true,
+    placeholder: "Faça o personagem acenar e o fundo se mover suavemente" },
 ];
 
 export function getTool(slug: string): Tool | undefined {

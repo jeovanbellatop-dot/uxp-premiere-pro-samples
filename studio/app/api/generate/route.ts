@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTool } from "../../../lib/tools";
-import { generateText, generateImage, analyzeImage, textToSpeech } from "../../../lib/gemini";
+import { generateText, generateImage, analyzeImage, textToSpeech, generateVideo } from "../../../lib/gemini";
 import { currentUser } from "../../../lib/auth";
 import {
   getCredits, spendCredits, saveDataUrl, addAsset,
@@ -8,7 +8,7 @@ import {
 } from "../../../lib/store";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const TEXT_PROMPTS: Record<string, (input: string) => string> = {
   "prompt-enhancer": (i) =>
@@ -72,6 +72,12 @@ export async function POST(req: NextRequest) {
       }
       case "audio": {
         const dataUrl = await textToSpeech(prompt!);
+        stored = await saveDataUrl(dataUrl);
+        output = stored;
+        break;
+      }
+      case "video": {
+        const dataUrl = await generateVideo(prompt || "", slug === "image-to-video" ? ref : undefined);
         stored = await saveDataUrl(dataUrl);
         output = stored;
         break;

@@ -10,6 +10,7 @@ const MEDIA_DIR = path.join(DATA_DIR, "media");
 const TYPES: Record<string, string> = {
   jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
   webp: "image/webp", gif: "image/gif", wav: "audio/wav", mp3: "audio/mpeg",
+  mp4: "video/mp4", webm: "video/webm",
 };
 
 export async function GET(_req: NextRequest, { params }: { params: { name: string } }) {

@@ -78,6 +78,8 @@ export default function Studio({
             <div key={g.id} className="gitem">
               {g.kind === "image" || g.kind === "image-edit" ? (
                 <img src={g.output} alt={g.prompt} />
+              ) : g.kind === "video" ? (
+                <video src={g.output} controls style={{ width: "100%", display: "block" }} />
               ) : g.kind === "audio" ? (
                 <div className="txt"><audio controls src={g.output} style={{ width: "100%" }} /></div>
               ) : (
@@ -169,12 +171,20 @@ function Runner({
         )}
       </div>
 
+      {tool.kind === "video" && loading && (
+        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 10 }}>
+          O vídeo pode levar de 1 a 3 minutos. Deixe esta aba aberta…
+        </p>
+      )}
+
       {error && <div className="error">{error}</div>}
 
       {result && (
         <div className="result">
           {isImage ? (
-            <><img src={result.output} alt="result" /><br /><a className="dl" href={result.output} download>Baixar</a></>
+            <><img src={result.output} alt="resultado" /><br /><a className="dl" href={result.output} download>Baixar</a></>
+          ) : result.kind === "video" ? (
+            <><video src={result.output} controls autoPlay loop style={{ width: "100%", borderRadius: 10, border: "1px solid var(--border)" }} /><br /><a className="dl" href={result.output} download>Baixar</a></>
           ) : result.kind === "audio" ? (
             <><audio controls src={result.output} style={{ width: "100%" }} /><br /><a className="dl" href={result.output} download>Baixar</a></>
           ) : (

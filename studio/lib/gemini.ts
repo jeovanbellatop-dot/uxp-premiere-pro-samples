@@ -10,7 +10,10 @@ export const MODELS = {
   textPro: "gemini-pro-latest",
   image: "gemini-3.1-flash-image",
   tts: "gemini-3.8-flash-tts",
+  video: "veo-3.1-generate-preview",
 } as const;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function key(): string {
   const k = process.env.GEMINI_API_KEY;
@@ -88,6 +91,47 @@ export async function textToSpeech(text: string, voice = "Kore"): Promise<string
   const pcm = Buffer.from(audio.inlineData.data, "base64");
   const wav = pcmToWav(pcm, 24000, 1);
   return `data:audio/wav;base64,${wav.toString("base64")}`;
+}
+
+/** Text (+ optional reference image) -> generated video, as an mp4 data URL.
+ *  Veo runs asynchronously: start a long-running op, poll it, then download. */
+export async function generateVideo(
+  prompt: string,
+  reference?: { mimeType: string; data: string },
+): Promise<string> {
+  const instance: Record<string, unknown> = { prompt: prompt || "animate this" };
+  if (reference) instance.image = { bytesBase64Encoded: reference.data, mimeType: reference.mimeType };
+
+  const startRes = await fetch(`${BASE}/models/${MODELS.video}:predictLongRunning?key=${key()}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ instances: [instance] }),
+  });
+  if (!startRes.ok) {
+    throw new Error(`Falha ao iniciar o vídeo (${startRes.status}): ${(await startRes.text()).slice(0, 300)}`);
+  }
+  const op = await startRes.json();
+  const opName: string | undefined = op?.name;
+  if (!opName) throw new Error("Veo não retornou a operação");
+
+  const deadline = Date.now() + 240000; // up to 4 min
+  while (Date.now() < deadline) {
+    await sleep(8000);
+    const pr = await fetch(`${BASE}/${opName}?key=${key()}`);
+    const pd = await pr.json();
+    if (pd?.error) throw new Error(`Veo falhou: ${String(pd.error.message || "").slice(0, 200)}`);
+    if (pd?.done) {
+      const uri: string | undefined =
+        pd?.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+      if (!uri) throw new Error("Veo não retornou um vídeo");
+      const dl = uri.includes("?") ? `${uri}&key=${key()}` : `${uri}?key=${key()}`;
+      const vr = await fetch(dl);
+      if (!vr.ok) throw new Error(`Falha ao baixar o vídeo (${vr.status})`);
+      const buf = Buffer.from(await vr.arrayBuffer());
+      return `data:video/mp4;base64,${buf.toString("base64")}`;
+    }
+  }
+  throw new Error("O vídeo demorou demais para ficar pronto. Tente de novo.");
 }
 
 function pcmToWav(pcm: Buffer, sampleRate: number, channels: number): Buffer {
