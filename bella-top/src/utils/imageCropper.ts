@@ -226,8 +226,8 @@ export function createBellaTopBagSvg(params: {
  */
 export async function compressImageToDataUrl(
   imageSrc: string,
-  maxDimension = 800,
-  quality = 0.7
+  maxDimension = 1600,
+  quality = 0.82
 ): Promise<string> {
   if (!imageSrc || typeof imageSrc !== "string") return "";
   // SVGs curtos mantêm o formato vetorial leve
