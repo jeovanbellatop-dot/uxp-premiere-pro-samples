@@ -581,11 +581,20 @@ class MesStore {
             // Nunca envie o binário original para o Firestore. O arquivo grande
             // já está no armazenamento; aqui ficam somente metadados e prévias.
             const firestoreOrder = this.sanitizeOrdersForLocalStorage([order])[0];
-            const serialized = JSON.stringify(firestoreOrder);
+            let serialized = JSON.stringify(firestoreOrder);
             const byteSize = typeof Blob !== "undefined" ? new Blob([serialized]).size : serialized.length;
+            // Nunca bloqueie uma OP já lançada por causa de mídia. Se uma OP
+            // legada ainda exceder o limite, envie somente os dados operacionais;
+            // a análise e a validação acontecem no lançamento, não depois.
             if (byteSize > 900 * 1024) {
-              const kb = Math.round(byteSize / 1024);
-              throw new Error(`A OP ${order.opNumber || order.id} tem ${kb} KB e excede o limite de 900 KB do Firestore. A imagem anexada precisa ser reduzida.`);
+              const compactOrder = { ...firestoreOrder } as Record<string, any>;
+              delete compactOrder.layoutImage;
+              delete compactOrder.layoutPreviewImage;
+              delete compactOrder.productThumbnail;
+              delete compactOrder.layoutImages;
+              delete compactOrder.op_file;
+              delete compactOrder.layout_file;
+              serialized = JSON.stringify(compactOrder);
             }
             const response = await fetch(`/api/db/ops`, {
               method: 'POST',
