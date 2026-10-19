@@ -10,7 +10,7 @@ import {
   DEFAULT_DRIVE_ROOT_NAME,
 } from './driveBridge';
 
-export const MAX_FILE_SIZE_BYTES = 30 * 1024 * 1024; // 30 MB
+export const MAX_FILE_SIZE_BYTES = 1024 * 1024 * 1024; // 1 GB por arquivo/OP
 
 export const BLOCKED_MIME_PATTERNS = [
   'application/x-msdownload',
@@ -113,12 +113,12 @@ export class FilePersistenceService {
   }
 
   /**
-   * Valida restrições de tamanho (máx 30 MB) e extensões executáveis
+   * Valida restrições de tamanho (máx 1 GB) e extensões executáveis
    */
   public static validateFile(fileName: string, mimeType: string, size: number): void {
     if (size > MAX_FILE_SIZE_BYTES) {
       throw new Error(
-        `Arquivo excede o limite máximo permitido de 30 MB (${(size / (1024 * 1024)).toFixed(2)} MB fornecido).`
+        `Arquivo excede o limite máximo permitido de 1 GB (${(size / (1024 * 1024)).toFixed(2)} MB fornecido).`
       );
     }
 
@@ -226,7 +226,7 @@ export class FilePersistenceService {
 
   /**
    * Salva o arquivo de forma resiliente:
-   * 1. Valida tamanho (máx 30 MB) e MIME type
+   * 1. Valida tamanho (máx 1 GB) e MIME type
    * 2. Registra metadados no Firestore com status PENDENTE
    * 3. Salva binário no Firebase Storage
    * 4. Tenta enviar para o Google Drive pelo backend
