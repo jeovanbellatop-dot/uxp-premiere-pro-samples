@@ -5,14 +5,15 @@
  *
  * Diretrizes:
  * - Limite seguro de documento no Firestore: 900 KB (margem do teto de 1 MiB).
- * - Sem uso ou cobrança de Firebase Storage.
- * - Miniaturas pequenas e layouts comprimidos em formato data URL (JPEG ~0.7, máx 800px).
+ * - Arquivos originais podem ser grandes e ficam no endpoint de arquivos/Storage;
+ *   somente prévias compactas entram no documento do Firestore.
+ * - Prévia de layout em JPEG de boa qualidade (máx 1600px) e miniatura de 600px.
  */
 
 export const FIRESTORE_DOC_SAFE_LIMIT_BYTES = 900 * 1024; // 900 KB
-export const MAX_MEDIA_DIMENSION_PX = 800;
-export const JPEG_COMPRESSION_QUALITY = 0.7;
-export const THUMBNAIL_MAX_DIMENSION_PX = 400;
+export const MAX_MEDIA_DIMENSION_PX = 1600;
+export const JPEG_COMPRESSION_QUALITY = 0.82;
+export const THUMBNAIL_MAX_DIMENSION_PX = 600;
 
 export interface SanitizeResult<T> {
   order: T;
@@ -55,7 +56,7 @@ export function assertFitsFirestoreDocument(doc: unknown, label: string): void {
     const kb = Math.round(size / 1024);
     throw new Error(
       `${label} tem ${kb} KB e excede o limite de 900 KB por documento do Firestore. ` +
-        'A imagem anexada precisa ser redimensionada e comprimida no navegador (máx 800px, JPEG ~0.7) antes de salvar.'
+        'A prévia é redimensionada e comprimida no navegador; o arquivo original permanece disponível no armazenamento de arquivos.'
     );
   }
 }
