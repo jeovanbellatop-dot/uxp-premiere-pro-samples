@@ -578,7 +578,10 @@ class MesStore {
         const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' });
         Promise.allSettled(
           ordersPayload.map(async (order) => {
-            const serialized = JSON.stringify(order);
+            // Nunca envie o binário original para o Firestore. O arquivo grande
+            // já está no armazenamento; aqui ficam somente metadados e prévias.
+            const firestoreOrder = this.sanitizeOrdersForLocalStorage([order])[0];
+            const serialized = JSON.stringify(firestoreOrder);
             const byteSize = typeof Blob !== "undefined" ? new Blob([serialized]).size : serialized.length;
             if (byteSize > 900 * 1024) {
               const kb = Math.round(byteSize / 1024);
