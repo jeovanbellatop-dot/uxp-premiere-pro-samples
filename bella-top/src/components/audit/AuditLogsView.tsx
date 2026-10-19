@@ -3,17 +3,39 @@ import { useMesStore } from '../../hooks/useMesStore';
 import { getUserMachineSummary } from '../../utils/userMachines';
 import { History, Search, ShieldCheck, Clock, User, Filter } from 'lucide-react';
 
+/**
+ * Registros antigos e integrações podem trazer action/detalhes como objetos.
+ * A auditoria nunca deve deixar de renderizar por causa de um dado legado.
+ */
+const auditValueToText = (value: unknown): string => {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return [record.label, record.type, record.name, record.action]
+      .filter((item): item is string | number | boolean =>
+        typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'
+      )
+      .map(String)
+      .join(' ');
+  }
+  return String(value);
+};
+
 export const AuditLogsView: React.FC = () => {
   const { auditLogs, users, machines } = useMesStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [entityFilter, setEntityFilter] = useState('ALL');
 
   const filteredLogs = auditLogs.filter((log) => {
-    const matchesSearch =
-      log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (log.entityId && log.entityId.toLowerCase().includes(searchTerm.toLowerCase()));
+    const needle = searchTerm.toLocaleLowerCase('pt-BR');
+    const matchesSearch = [
+      auditValueToText(log.action),
+      auditValueToText(log.details),
+      auditValueToText(log.userName),
+      auditValueToText(log.entityId),
+    ].some((value) => value.toLocaleLowerCase('pt-BR').includes(needle));
 
     const matchesEntity = entityFilter === 'ALL' || log.entityType === entityFilter;
 
@@ -94,7 +116,9 @@ export const AuditLogsView: React.FC = () => {
                     })()}
                   </td>
 
-                  <td className="py-3 px-4 font-semibold text-[#1C1418]">{log.action}</td>
+                  <td className="py-3 px-4 font-semibold text-[#1C1418]">
+                    {auditValueToText(log.action) || 'AÇÃO NÃO INFORMADA'}
+                  </td>
 
                   <td className="py-3 px-4">
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#F2EBE6] text-[#3A3034] border border-[#E5DAD3]">
