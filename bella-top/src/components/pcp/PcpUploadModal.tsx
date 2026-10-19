@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useMesStore } from '../../hooks/useMesStore';
+import { mesStore } from '../../services/mesStore';
 import { parseOpFiles } from '../../services/opReaderService';
 import { ExtractedOpData } from '../../types/mes';
 import {
@@ -101,9 +102,17 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
   const uploadFileToStorage = async (file: LoadedFile, folder: string, opNum?: string): Promise<string> => {
     // Sem releitura do arquivo: o dataUrl foi gerado na seleção.
     const categoria = folder.includes('layout') ? 'Layouts' : folder.includes('op-pdf') ? 'PDF da OP' : 'Documentos';
+    const token = mesStore.getAuthSessionToken();
+    if (!token) {
+      throw new Error('Sessão obrigatória para associar os documentos. Faça login novamente e tente de novo.');
+    }
     const response = await fetch('/api/files/upload', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        'x-session-token': token,
+      },
       body: JSON.stringify({
         fileName: file.name,
         mimeType: file.type,
@@ -988,254 +997,3 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
 
                         {/* Confirmacao do produto pelo PCP: a IA sugere, o PCP confirma. */}
                         <div className="bg-white border border-[#E5DAD3] rounded-xl p-3 space-y-2">
-                          <div className="flex items-center gap-1.5">
-                            <UserCheck className="w-3.5 h-3.5 text-[#E30A78]" />
-                            <span className="font-black text-[10px] uppercase tracking-widest text-[#B30A5C]">
-                              Produto do roteiro (confirmação do PCP)
-                            </span>
-                          </div>
-                          <select
-                            value={
-                              extractedData.produtoConfirmadoPcp ||
-                              extractedData.produtoSugeridoIa ||
-                              'NAO_IDENTIFICADO'
-                            }
-                            onChange={(e) => handleConfirmProduct(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E5DAD3] bg-white text-xs font-bold text-[#1C1418] focus:outline-none focus:ring-2 focus:ring-[#E30A78]/40 cursor-pointer"
-                          >
-                            {PRODUCT_KEY_OPTIONS.map((opt) => (
-                              <option key={opt.key} value={opt.key}>
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
-                          <p className="text-[10px] text-[#6E615B] leading-relaxed">
-                            Sugestão da IA:{' '}
-                            <span className="font-bold text-[#3A3034]">
-                              {getProductKeyLabel(extractedData.produtoSugeridoIa)}
-                            </span>
-                            {extractedData.produtoConfirmadoPcp &&
-                              extractedData.produtoConfirmadoPcp !== extractedData.produtoSugeridoIa && (
-                                <span className="text-[#B30A5C] font-bold"> · corrigido pelo PCP</span>
-                              )}
-                            . Trocar o produto refaz o roteiro abaixo.
-                          </p>
-                        </div>
-
-                        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                          {editableRoute.map((step, idx) => {
-                            const compatibleMachines = machines.filter(
-                              (m) => m.processTypeId === step.processTypeId && m.isActive
-                            );
-
-                            return (
-                              <div
-                                key={idx}
-                                className="p-2.5 rounded-xl bg-white border border-[#E5DAD3] flex items-center justify-between gap-3 text-xs shadow-sm"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-pink-100 text-[#B30A5C] font-mono font-bold flex items-center justify-center text-[10px] border border-pink-200">
-                                    {idx + 1}
-                                  </span>
-                                  <div>
-                                    <div className="font-bold text-[#1C1418] flex items-center gap-1.5">
-                                      <span>{step.processName}</span>
-                                      {((step as any).hasCord || (step.processTypeId === 'proc_solda' && (extractedData?.op?.has_cord || extractedData?.op?.hasDrawstring || extractedData?.op?.handle_type === 'CORDAO'))) && (
-                                        <span className="text-[9px] font-mono font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-700 border border-amber-300">
-                                          Cordão: SIM
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="text-[10px] text-[#6E615B] font-mono">
-                                      Estimado: ~{step.estimatedMinutes} min
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {step.processTypeId === 'proc_expedicao' || (step as any).isManual || step.processName.toLowerCase().includes('expedi') ? (
-                                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold shadow-xs">
-                                    <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                    <span>Manual • Carlos (Expedição)</span>
-                                  </div>
-                                ) : (
-                                  <select
-                                    value={step.machineId}
-                                    onChange={(e) => handleMachineChangeForStep(idx, e.target.value)}
-                                    className="bg-[#FAF5F1] border border-[#E5DAD3] text-[#1C1418] rounded-lg px-2 py-1 text-[11px] font-bold focus:border-[#E30A78] focus:outline-none"
-                                  >
-                                    {compatibleMachines.length > 0 ? (
-                                      compatibleMachines.map((m) => (
-                                        <option key={m.id} value={m.id}>
-                                          {m.name} ({m.status})
-                                        </option>
-                                      ))
-                                    ) : (
-                                      <option value="">Sem máquina compatível</option>
-                                    )}
-                                  </select>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Footer Actions */}
-          <div className="bg-[#FAF5F1] px-6 py-4 border-t border-[#E5DAD3] flex items-center justify-between">
-            {activeTab === 'upload' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleAnalyzeAndCreate}
-                  disabled={!isDocumentalComplete || isProcessing}
-                  className={`px-6 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer ${
-                    isDocumentalComplete && !isProcessing
-                      ? 'bg-gradient-to-r from-[#E30A78] to-[#B30A5C] hover:from-[#c20866] hover:to-[#96084c] text-white shadow-pink-600/20 active:scale-95'
-                      : 'bg-[#E5DAD3] text-[#8A7D77] cursor-not-allowed opacity-70 shadow-none'
-                  }`}
-                >
-                  {isProcessing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>ANALISANDO DOCUMENTOS...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>ANALISAR E CRIAR OP</span>
-                    </>
-                  )}
-                </button>
-              </>
-            ) : isEditingManualData ? (
-              <div className="w-full flex items-center justify-between">
-                <span className="text-[11px] text-[#6E615B] font-medium">
-                  Modo de edição ativo. Preencha os campos obrigatórios e clique em salvar.
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingManualData(false)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Voltar à Visualização
-                </button>
-              </div>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditingManualData(false);
-                    setActiveTab('upload');
-                  }}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>CORRIGIR ARQUIVOS</span>
-                </button>
-
-                {extractedData?.precisaRevisaoPcp ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingManualData(true)}
-                    className="px-6 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 bg-gradient-to-r from-[#E30A78] to-[#B30A5C] hover:from-[#c20866] hover:to-[#96084c] text-white shadow-pink-600/20 cursor-pointer active:scale-95"
-                  >
-                    <Edit3 className="w-4 h-4 stroke-[2.5]" />
-                    <span>REVISAR E CORRIGIR DADOS DA OP</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleApproveAndRelease}
-                    className="px-6 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-emerald-600/20 cursor-pointer active:scale-95"
-                  >
-                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>CONFIRMAR E LIBERAR PARA PRODUÇÃO</span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Cropper Modal Overlay */}
-      {layoutImageSrc && (
-        <LayoutCropModal
-          isOpen={isCropperOpen}
-          onClose={() => setIsCropperOpen(false)}
-          layoutImage={layoutImageSrc}
-          opNumber={extractedData?.numeroOp || 'Nova'}
-          initialCropBox={extractedData?.layoutCropBox}
-          onSaveCrop={handleSaveCrop}
-        />
-      )}
-
-      {/* Full Layout Modal */}
-      {extractedData && (
-        <FullLayoutModal
-          order={{
-            id: 'temp-preview',
-            opNumber: extractedData.numeroOp,
-            orderNumber: extractedData.numeroPedido,
-            client: extractedData.cliente,
-            productId: 'temp',
-            productName: extractedData.produtoNome,
-            productCode: extractedData.codigoProduto,
-            targetQuantity: extractedData.quantidade,
-            currentGoodQuantity: 0,
-            totalLosses: 0,
-            unit: extractedData.unidade,
-            material: extractedData.material,
-            grammage: extractedData.gramatura,
-            color: extractedData.corMaterial,
-            dimensions: {
-              width: extractedData.larguraMm,
-              height: extractedData.alturaMm,
-              gusset: extractedData.fundoMm,
-            },
-            printing: {
-              type: extractedData.tipoImpressao,
-              colorsCount: extractedData.numeroCores,
-              front: extractedData.impressaoFrente,
-              back: extractedData.impressaoVerso,
-            },
-            handleType: extractedData.tipoAlca,
-            hasDrawstring: extractedData.usoCordao,
-            hasVisor: extractedData.usoVisor,
-            technicalNotes: extractedData.observacoesTecnicas,
-            deadline: extractedData.prazoEntrega,
-            estimatedCompletionDate: extractedData.prazoEntrega,
-            safetyMarginHours: 24,
-            priority: 'VERDE',
-            status: 'PROGRAMADA',
-            currentStepIndex: 0,
-            steps: [],
-            createdAt: new Date().toISOString(),
-            createdBy: 'PCP',
-            layoutImage: layoutImageSrc,
-            layoutPreviewImage: layoutImageSrc,
-            productThumbnail: extractedData.productThumbnail,
-            layoutFileName: layoutFile?.name || extractedData.layoutFileName,
-          }}
-          isOpen={isFullLayoutModalOpen}
-          onClose={() => setIsFullLayoutModalOpen(false)}
-        />
-      )}
-    </>
-  );
-};
