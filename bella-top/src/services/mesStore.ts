@@ -376,15 +376,15 @@ class MesStore {
     let changed = false;
     for (const order of this.orders) {
       if (order.layoutImage && order.layoutImage.length > 200 * 1024) {
-        order.layoutImage = await compressImageToDataUrl(order.layoutImage, 800, 0.7);
+        order.layoutImage = await compressImageToDataUrl(order.layoutImage, 1600, 0.82);
         changed = true;
       }
       if (order.layoutPreviewImage && order.layoutPreviewImage.length > 200 * 1024) {
-        order.layoutPreviewImage = await compressImageToDataUrl(order.layoutPreviewImage, 800, 0.7);
+        order.layoutPreviewImage = await compressImageToDataUrl(order.layoutPreviewImage, 1600, 0.82);
         changed = true;
       }
       if (order.productThumbnail && order.productThumbnail.length > 100 * 1024) {
-        order.productThumbnail = await compressImageToDataUrl(order.productThumbnail, 400, 0.7);
+        order.productThumbnail = await compressImageToDataUrl(order.productThumbnail, 600, 0.82);
         changed = true;
       }
       if (Array.isArray(order.layoutImages)) {
