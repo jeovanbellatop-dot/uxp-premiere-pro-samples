@@ -581,7 +581,14 @@ class MesStore {
             // Nunca envie o binário original para o Firestore. O arquivo grande
             // já está no armazenamento; aqui ficam somente metadados e prévias.
             const firestoreOrder = this.sanitizeOrdersForLocalStorage([order])[0];
-            let serialized = JSON.stringify(firestoreOrder);
+            // Filtro final defensivo: nenhuma string Base64 ou campo textual
+            // gigante pode acompanhar a OP no payload do Firestore, mesmo que
+            // venha de um formato legado ou de uma nova fonte de análise.
+            let serialized = JSON.stringify(firestoreOrder, (_key, value) => {
+              if (typeof value !== 'string') return value;
+              if (value.startsWith('data:') || value.length > 250 * 1024) return undefined;
+              return value;
+            });
             const byteSize = typeof Blob !== "undefined" ? new Blob([serialized]).size : serialized.length;
             // Nunca bloqueie uma OP já lançada por causa de mídia. Se uma OP
             // legada ainda exceder o limite, envie somente os dados operacionais;
@@ -592,6 +599,9 @@ class MesStore {
               delete compactOrder.layoutPreviewImage;
               delete compactOrder.productThumbnail;
               delete compactOrder.layoutImages;
+              delete compactOrder.images;
+              delete compactOrder.documents;
+              delete compactOrder.attachments;
               delete compactOrder.op_file;
               delete compactOrder.layout_file;
               serialized = JSON.stringify(compactOrder);
