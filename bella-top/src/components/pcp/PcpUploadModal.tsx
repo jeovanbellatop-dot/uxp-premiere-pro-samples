@@ -319,16 +319,8 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
       setErrorMsg('Existem dados pendentes ou não identificados com certeza. Preencha os campos abaixo no formulário de revisão para liberar a OP.');
       return;
     }
-    // Verificação estrita de tamanho: alvo documento da OP abaixo de 900 KB
-    const estimatedDoc = { ...extractedData, steps: editableRoute };
-    const estimatedSize = new Blob([JSON.stringify(estimatedDoc)]).size;
-    if (estimatedSize > 900 * 1024) {
-      const kb = Math.round(estimatedSize / 1024);
-      setErrorMsg(
-        `Atenção: Os dados da OP (${kb} KB) excedem o limite de segurança de 900 KB do Firestore. Reduza a imagem do layout antes de aprovar e liberar a OP.`
-      );
-      return;
-    }
+    // O arquivo original pode ser grande: a sincronização remove binários
+    // antes de enviar a OP ao Firestore e mantém apenas a referência do arquivo.
     const newOrder = createOrderFromExtracted(extractedData, editableRoute);
     onOpCreated(newOrder.id);
     onClose();
