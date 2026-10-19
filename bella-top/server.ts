@@ -26,9 +26,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-// Enable JSON body with larger limit for base64 PDF and layout uploads
-app.use(express.json({ limit: "35mb" }));
-app.use(express.urlencoded({ extended: true, limit: "35mb" }));
+// Uploads de documentos podem chegar a 1 GB por OP. O conteúdo é enviado ao
+// armazenamento de arquivos; o Firestore recebe apenas metadados e URLs.
+// Base64 ocupa ~33% a mais que o binário, por isso o corpo JSON precisa de margem.
+app.use(express.json({ limit: "1400mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1400mb" }));
 
 // Middleware para verificação rigorosa de sessão ativa emitida pelo servidor
 const requireSession = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
