@@ -1,18 +1,24 @@
 # Agente SDR – Lapidador de listas de empresas
 
 Você entrega uma lista só com o **nome das empresas** (e, se tiver, cidade, site, CNPJ
-ou outras colunas). O agente devolve a mesma lista **lapidada**, com:
+ou outras colunas). O agente devolve a mesma lista **lapidada**, e todo lead segue o
+mesmo modelo de ficha — cada dado com a origem entre parênteses:
 
-| Coluna | Origem |
+| Campo | Exemplo |
 |---|---|
-| Razão Social / Nome Fantasia | Receita Federal (confirmado) ou web |
-| **CNPJ** | encontrado na web e **confirmado na Receita** (dígitos verificados) |
-| **Telefone** / Outros Telefones | Receita + site oficial, Google, redes sociais |
-| **E-mail** | Receita + site oficial |
-| Site, Cidade, UF | web / Receita |
-| Situação Cadastral, Atividade | Receita Federal |
+| Razão Social | CALCADOS BIBI LTDA |
+| Nome Fantasia | Bibi |
+| CNPJ | 97.748.958/0001-05 (dígitos verificadores conferem) |
+| Telefone | (51) 3512-3344 (diretórios de CNPJ, cadastro da sede) |
+| Outros Telefones | (51) 3512-3399 (central de relacionamento) · (51) 99221-6500 (WhatsApp) |
+| E-mail | atendimento@bibi.com.br |
+| Site | bibi.com |
+| Cidade / UF | Parobé / RS (sede. Tem uma segunda fábrica em Cruz das Almas/BA) |
+| Atividade | Fabricação de calçados de couro (CNAE 1531-9/01), aberta em 1966 |
 | Status Lead | `Completo`, `Parcial`, `Não encontrado` ou `Erro` |
-| Confiança, Fontes, Observações | o agente explica de onde tirou cada dado |
+| Confiança | `Alta`, `Média` ou `Baixa` |
+
+As colunas originais da lista (ex.: Estande, Segmento) são mantidas antes da ficha.
 
 ## Como funciona
 
@@ -46,12 +52,14 @@ python sdr_agent.py minha_lista.csv -o leads.csv --workers 6
 python sdr_agent.py minha_lista.xlsx --apenas-ativas    # remove baixadas/inaptas
 python sdr_agent.py minha_lista.xlsx --esforco high     # pesquisa mais profunda
 python sdr_agent.py minha_lista.xlsx --sem-ia           # só Receita, p/ quem já tem CNPJ
+python sdr_agent.py bfshow.xlsx --aba "Prioridade comercial"  # escolhe a aba
 ```
 
 Teste rápido com a lista de exemplo: `python sdr_agent.py exemplo_lista.csv`.
 
 | Opção | O que faz |
 |---|---|
+| `--aba` | aba da planilha a usar (padrão: a primeira). Linhas de título no topo são puladas |
 | `-o / --saida` | arquivo de saída (`.xlsx` ou `.csv`, CSV sai com `;` para abrir no Excel) |
 | `--workers N` | quantas empresas pesquisar ao mesmo tempo (padrão 4) |
 | `--esforco` | `low`, `medium` (padrão), `high`, `xhigh`, `max` — mais esforço = mais preciso e mais caro |

@@ -39,9 +39,22 @@ comerciais da própria empresa (telefone fixo/WhatsApp de vendas, e-mail de cont
 4. Havendo várias empresas com o mesmo nome, use as pistas fornecidas para escolher; \
 se não der para decidir, escolha a mais provável, use confiança "baixa" e explique.
 
+5. Empresas grandes têm um CNPJ por filial: traga a matriz (0001), salvo se as pistas \
+indicarem outra unidade. Se o grupo tiver outras empresas/marcas relevantes, cite na nota.
+
 Regras: nunca invente dados. Campo não encontrado fica como string vazia. \
-Telefones no formato (DD) NNNNN-NNNN. CNPJ no formato 00.000.000/0000-00. \
-Liste em "fontes" as URLs ou bases de onde tirou cada dado."""
+Telefones no formato (DD) NNNN-NNNN ou (DD) NNNNN-NNNN; 0800 como 0800 NNN NNNN. \
+CNPJ no formato 00.000.000/0000-00.
+Cada campo tem uma "nota" curta dizendo de onde veio o dado e o que o vendedor precisa \
+saber, por exemplo: "diretórios de CNPJ, cadastro da sede", "central de relacionamento", \
+"SAC – pedir contato de Compras", "contato nominal, listado no Sindifranca", \
+"sede. Tem uma segunda fábrica em Cruz das Almas/BA". Deixe a nota vazia se não houver \
+nada útil a dizer. Se duas fontes oficiais divergirem (ex.: dois WhatsApps), traga os \
+dois e diga isso na nota.
+Atividade no formato: "Fabricação de calçados de couro (CNAE 1531-9/01), aberta em 1966".
+Confiança: "alta" quando CNPJ e contatos batem em fontes independentes ou oficiais; \
+"media" quando algum dado depende de uma só fonte ou é de SAC; "baixa" quando houver \
+dúvida sobre qual empresa é."""
 
 FERRAMENTA_CNPJ = {
     "name": "consultar_cnpj",
@@ -67,33 +80,38 @@ FERRAMENTAS = [
 ]
 
 _TEXTO = {"type": "string"}
+
+
+def _com_nota(campo: str) -> dict:
+    return {"type": "object", "properties": {campo: _TEXTO, "nota": _TEXTO},
+            "required": [campo, "nota"], "additionalProperties": False}
+
+
+_CAMPOS = {
+    "razao_social": _TEXTO,
+    "nome_fantasia": _TEXTO,
+    "cnpj": _TEXTO,
+    "telefone": _com_nota("numero"),
+    "outros_telefones": {"type": "array", "items": _com_nota("numero")},
+    "email": _com_nota("endereco"),
+    "site": _TEXTO,
+    "cidade": _TEXTO,
+    "uf": _TEXTO,
+    "nota_local": _TEXTO,
+    "atividade": _TEXTO,
+    "situacao_cadastral": _TEXTO,
+    "confianca": {"type": "string", "enum": ["alta", "media", "baixa"]},
+}
 FORMATO_RESPOSTA = {
     "type": "json_schema",
-    "schema": {
-        "type": "object",
-        "properties": {
-            "encontrada": {"type": "boolean"},
-            "razao_social": _TEXTO,
-            "nome_fantasia": _TEXTO,
-            "cnpj": _TEXTO,
-            "telefones": {"type": "array", "items": _TEXTO},
-            "email": _TEXTO,
-            "site": _TEXTO,
-            "cidade": _TEXTO,
-            "uf": _TEXTO,
-            "confianca": {"type": "string", "enum": ["alta", "media", "baixa"]},
-            "fontes": {"type": "array", "items": _TEXTO},
-            "observacoes": _TEXTO,
-        },
-        "required": ["encontrada", "razao_social", "nome_fantasia", "cnpj", "telefones",
-                     "email", "site", "cidade", "uf", "confianca", "fontes", "observacoes"],
-        "additionalProperties": False,
-    },
+    "schema": {"type": "object", "properties": _CAMPOS, "required": list(_CAMPOS),
+               "additionalProperties": False},
 }
 
+# Modelo de ficha do lead (mesma ordem e nomes em toda saída)
 COLUNAS_SAIDA = ["Razão Social", "Nome Fantasia", "CNPJ", "Telefone", "Outros Telefones",
-                 "E-mail", "Site", "Cidade", "UF", "Situação Cadastral", "Atividade",
-                 "Status Lead", "Confiança", "Fontes", "Observações"]
+                 "E-mail", "Site", "Cidade / UF", "Atividade", "Status Lead", "Confiança"]
+CONFIANCA = {"alta": "Alta", "media": "Média", "baixa": "Baixa"}
 
 
 def _normalizar(texto: str) -> str:
@@ -162,86 +180,121 @@ def pesquisar_com_ia(client: anthropic.Anthropic, empresa: str, pistas: dict,
     raise RuntimeError("limite de iterações atingido sem resposta final")
 
 
-def _juntar_telefones(*listas) -> list[str]:
-    vistos, saida = set(), []
-    for lista in listas:
-        for tel in lista or []:
-            tel = receita.formatar_telefone(tel)
-            chave = re.sub(r"\D", "", tel)
-            if chave and chave not in vistos:
-                vistos.add(chave)
-                saida.append(tel)
-    return saida
+def _anotar(valor: str, nota: str) -> str:
+    valor, nota = (valor or "").strip(), (nota or "").strip()
+    return f"{valor} ({nota})" if valor and nota else valor
+
+
+def _atividade_receita(oficial: dict) -> str:
+    texto = oficial.get("atividade", "").capitalize()
+    if oficial.get("cnae"):
+        texto += f" (CNAE {receita.formatar_cnae(oficial['cnae'])})"
+    if oficial.get("abertura"):
+        texto += f", aberta em {oficial['abertura'][:4]}"  # data ISO: AAAA-MM-DD
+    return texto
+
+
+def _de_receita(oficial: dict) -> dict:
+    """Monta a resposta só com os dados da Receita (quando eles bastam)."""
+    tels = oficial.get("telefones", [])
+    return {
+        "razao_social": oficial["razao_social"], "nome_fantasia": oficial["nome_fantasia"],
+        "cnpj": oficial["cnpj"],
+        "telefone": {"numero": tels[0] if tels else "", "nota": "Receita Federal"},
+        "outros_telefones": [{"numero": t, "nota": "Receita Federal"} for t in tels[1:]],
+        "email": {"endereco": oficial["email"], "nota": "Receita Federal"},
+        "site": "", "cidade": oficial["municipio"].title(), "uf": oficial["uf"],
+        "nota_local": "", "atividade": _atividade_receita(oficial),
+        "situacao_cadastral": oficial["situacao"], "confianca": "alta",
+    }
 
 
 def enriquecer(client: anthropic.Anthropic | None, empresa: str, cnpj_lista: str,
                pistas: dict, esforco: str) -> dict:
-    """Devolve os campos de saída para uma linha da lista."""
+    """Devolve a ficha do lead (colunas de COLUNAS_SAIDA) para uma linha da lista."""
     oficial = {}
     if cnpj_lista and receita.valido(cnpj_lista):
         oficial = receita.consultar(cnpj_lista)
         if "erro" in oficial:
             oficial = {}
 
-    web = {}
-    precisa_ia = not (oficial.get("telefones") and oficial.get("email"))
-    if precisa_ia and client:
+    if oficial and oficial.get("telefones") and oficial.get("email"):
+        dados = _de_receita(oficial)
+    elif client:
         if oficial:
             pistas = {**pistas, "CNPJ já confirmado na Receita": oficial["cnpj"],
                       "Dados da Receita": json.dumps(oficial, ensure_ascii=False)}
-        web = pesquisar_com_ia(client, empresa, pistas, esforco)
+        dados = pesquisar_com_ia(client, empresa, pistas, esforco)
+    elif oficial:
+        dados = _de_receita(oficial)
+    else:
+        dados = {}
 
-    obs = [web.get("observacoes", "")] if web.get("observacoes") else []
-    cnpj_web = web.get("cnpj", "")
-    if cnpj_web and not receita.valido(cnpj_web):
-        obs.append(f"CNPJ sugerido pela web descartado (inválido): {cnpj_web}")
-        cnpj_web = ""
-    if not oficial and cnpj_web:
-        oficial = receita.consultar(cnpj_web)
-        if "erro" in oficial:
-            oficial = {}
+    cnpj_achado = dados.get("cnpj", "")
+    nota_cnpj = ""
+    confianca = dados.get("confianca", "")
+    if cnpj_achado:
+        if receita.valido(cnpj_achado):
+            cnpj_achado = receita.formatar(cnpj_achado)
+            nota_cnpj = "dígitos verificadores conferem"
+            if oficial or "erro" not in receita.consultar(cnpj_achado):
+                nota_cnpj += ", confirmado na Receita"
+        else:
+            nota_cnpj = "descartado: dígitos verificadores não conferem"
+            cnpj_achado, confianca = "", "baixa"
 
-    telefones = _juntar_telefones(oficial.get("telefones"), web.get("telefones"))
-    email = oficial.get("email") or web.get("email", "")
-    if web.get("email") and web["email"].lower() != email:
-        obs.append(f"E-mail alternativo: {web['email']}")
+    tel = dados.get("telefone") or {}
+    outros = dados.get("outros_telefones") or []
+    email = dados.get("email") or {}
+    local = " / ".join(x for x in (dados.get("cidade", ""), dados.get("uf", "")) if x)
 
-    cnpj_final = oficial.get("cnpj") or (receita.formatar(cnpj_web) if cnpj_web else "")
-    if cnpj_final and telefones and email:
+    if cnpj_achado and tel.get("numero") and email.get("endereco"):
         status = "Completo"
-    elif cnpj_final or telefones or email:
+    elif cnpj_achado or tel.get("numero") or email.get("endereco"):
         status = "Parcial"
     else:
         status = "Não encontrado"
 
-    fontes = (["Receita Federal"] if oficial else []) + web.get("fontes", [])
     return {
-        "Razão Social": oficial.get("razao_social") or web.get("razao_social", ""),
-        "Nome Fantasia": oficial.get("nome_fantasia") or web.get("nome_fantasia", ""),
-        "CNPJ": cnpj_final,
-        "Telefone": telefones[0] if telefones else "",
-        "Outros Telefones": ", ".join(telefones[1:]),
-        "E-mail": email,
-        "Site": web.get("site", ""),
-        "Cidade": oficial.get("municipio") or web.get("cidade", ""),
-        "UF": oficial.get("uf") or web.get("uf", ""),
-        "Situação Cadastral": oficial.get("situacao", ""),
-        "Atividade": oficial.get("atividade", ""),
+        "Razão Social": dados.get("razao_social", ""),
+        "Nome Fantasia": dados.get("nome_fantasia", "") or empresa,
+        "CNPJ": _anotar(cnpj_achado, nota_cnpj),
+        "Telefone": _anotar(receita.formatar_telefone(tel.get("numero", "")), tel.get("nota")),
+        "Outros Telefones": " · ".join(
+            _anotar(receita.formatar_telefone(t["numero"]), t.get("nota"))
+            for t in outros if t.get("numero")),
+        "E-mail": _anotar(email.get("endereco", "").lower(), email.get("nota")),
+        "Site": dados.get("site", ""),
+        "Cidade / UF": _anotar(local, dados.get("nota_local")),
+        "Atividade": dados.get("atividade", ""),
         "Status Lead": status,
-        "Confiança": "alta" if oficial and not web else web.get("confianca", ""),
-        "Fontes": " | ".join(dict.fromkeys(fontes)),
-        "Observações": " ".join(obs),
+        "Confiança": CONFIANCA.get(confianca, ""),
+        "_situacao": dados.get("situacao_cadastral", ""),
     }
 
 
-def ler_lista(caminho: Path) -> pd.DataFrame:
+def _achar_cabecalho(df: pd.DataFrame) -> pd.DataFrame:
+    """Planilhas com título no topo: usa como cabeçalho a 1ª linha que cita empresa/nome."""
+    if any(_normalizar(c) in ("empresa", "nome", "razaosocial", "cnpj") for c in df.columns):
+        return df
+    for i, linha in df.head(20).iterrows():
+        valores = [_normalizar(v) for v in linha.fillna("")]
+        if any(v in ("empresa", "nome", "razaosocial", "nomedaempresa", "cnpj") for v in valores):
+            novo = df.iloc[i + 1:].copy()
+            novo.columns = [str(v).strip() or f"Coluna {j}" for j, v in enumerate(linha.fillna(""))]
+            return novo
+    return df
+
+
+def ler_lista(caminho: Path, aba: str | None = None) -> pd.DataFrame:
     if caminho.suffix.lower() in (".xlsx", ".xls"):
-        df = pd.read_excel(caminho, dtype=str)
+        df = _achar_cabecalho(pd.read_excel(caminho, sheet_name=aba or 0, dtype=str))
     elif caminho.suffix.lower() == ".txt":
         nomes = [l.strip() for l in caminho.read_text(encoding="utf-8").splitlines() if l.strip()]
         df = pd.DataFrame({"Empresa": nomes})
     else:
-        df = pd.read_csv(caminho, dtype=str, sep=None, engine="python", encoding="utf-8-sig")
+        df = _achar_cabecalho(pd.read_csv(caminho, dtype=str, sep=None, engine="python",
+                                          encoding="utf-8-sig"))
     df = df.fillna("").dropna(how="all")
     return df[df.apply(lambda r: any(str(v).strip() for v in r), axis=1)].reset_index(drop=True)
 
@@ -256,6 +309,7 @@ def salvar(df: pd.DataFrame, caminho: Path) -> None:
 def main() -> None:
     p = argparse.ArgumentParser(description="Agente SDR: lapida listas de empresas.")
     p.add_argument("entrada", type=Path, help="Lista em .xlsx, .csv ou .txt (um nome por linha)")
+    p.add_argument("--aba", help="Nome da aba da planilha (padrão: a primeira)")
     p.add_argument("-o", "--saida", type=Path, help="Arquivo de saída (.xlsx ou .csv)")
     p.add_argument("--workers", type=int, default=4, help="Empresas pesquisadas em paralelo")
     p.add_argument("--esforco", default="medium", choices=["low", "medium", "high", "xhigh", "max"],
@@ -266,7 +320,7 @@ def main() -> None:
                    help="Só consulta a Receita para linhas que já têm CNPJ (sem custo de IA)")
     args = p.parse_args()
 
-    df = ler_lista(args.entrada)
+    df = ler_lista(args.entrada, args.aba)
     col_nome, col_cnpj = detectar_colunas(df)
     saida = args.saida or args.entrada.with_name(f"{args.entrada.stem}_lapidada.xlsx")
     cache_path = saida.with_suffix(".cache.json")
@@ -298,7 +352,7 @@ def main() -> None:
             dados = enriquecer(client, linha[col_nome], linha[col_cnpj] if col_cnpj else "",
                                pistas, args.esforco)
         except (anthropic.APIError, RuntimeError, json.JSONDecodeError) as e:
-            return i, {"Status Lead": "Erro", "Observações": f"Falha na pesquisa: {e}"}
+            return i, {"Status Lead": f"Erro: {e}"}
         if client is None:  # modo --sem-ia não é cacheado, para a IA poder completar depois
             return i, dados
         with trava:
@@ -315,7 +369,8 @@ def main() -> None:
             print(f"[{n}/{len(df)}] {df.iloc[i][col_nome]}: {dados.get('Status Lead', '')} "
                   f"{dados.get('Telefone', '')} {dados.get('E-mail', '')}")
 
-    enriquecido = pd.DataFrame([resultados[i] for i in range(len(df))], columns=COLUNAS_SAIDA)
+    enriquecido = pd.DataFrame([resultados[i] for i in range(len(df))],
+                               columns=COLUNAS_SAIDA + ["_situacao"])
     enriquecido = enriquecido.fillna("")
     # Colunas que já existiam na lista: mantém o valor original onde nada foi encontrado
     repetidas = [c for c in COLUNAS_SAIDA if c in df.columns]
@@ -324,8 +379,9 @@ def main() -> None:
     final = pd.concat([df.drop(columns=repetidas), enriquecido], axis=1)
     if args.apenas_ativas:
         antes = len(final)
-        final = final[final["Situação Cadastral"].str.upper().isin(["ATIVA", ""])]
+        final = final[final["_situacao"].str.upper().isin(["ATIVA", ""])]
         print(f"Filtro de ativas removeu {antes - len(final)} empresa(s).")
+    final = final.drop(columns="_situacao")
 
     salvar(final, saida)
     resumo = final["Status Lead"].value_counts().to_dict()

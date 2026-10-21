@@ -47,6 +47,11 @@ def formatar_telefone(tel: str) -> str:
     return (tel or "").strip()
 
 
+def formatar_cnae(cnae: str) -> str:
+    d = re.sub(r"\D", "", cnae or "")
+    return f"{d[:4]}-{d[4]}/{d[5:]}" if len(d) == 7 else (cnae or "")
+
+
 def _brasilapi(c: str) -> dict | None:
     r = _SESSAO.get(f"https://brasilapi.com.br/api/cnpj/v1/{c}", timeout=20)
     if r.status_code != 200:
@@ -62,6 +67,8 @@ def _brasilapi(c: str) -> dict | None:
         "municipio": j.get("municipio") or "",
         "uf": j.get("uf") or "",
         "atividade": j.get("cnae_fiscal_descricao") or "",
+        "cnae": str(j.get("cnae_fiscal") or ""),
+        "abertura": j.get("data_inicio_atividade") or "",
     }
 
 
@@ -84,6 +91,8 @@ def _publica_cnpj_ws(c: str) -> dict | None:
         "municipio": (est.get("cidade") or {}).get("nome", ""),
         "uf": (est.get("estado") or {}).get("sigla", ""),
         "atividade": (est.get("atividade_principal") or {}).get("descricao", ""),
+        "cnae": (est.get("atividade_principal") or {}).get("subclasse", ""),
+        "abertura": est.get("data_inicio_atividade") or "",
     }
 
 
