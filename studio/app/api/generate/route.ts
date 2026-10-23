@@ -22,6 +22,19 @@ const TEXT_PROMPTS: Record<string, (input: string) => string> = {
     `with on-screen text and voiceover, then a CTA. Keep it under 45 seconds.\n\nTopic: ${i}`,
 };
 
+// Per-tool wrapping for image tools (the user prompt may be empty for edits).
+const IMAGE_PROMPTS: Record<string, (p: string) => string> = {
+  "product-shot": (p) => `Studio product photography. ${p}. Clean commercial lighting, high detail.`,
+  "remove-bg": (p) =>
+    `Remove the background completely and cleanly cut out the main subject on a plain white background. Keep the subject sharp. ${p}`,
+  "upscale": (p) =>
+    `Enhance this image: increase sharpness, fine detail and resolution, reduce noise and artifacts, keep the exact same content and composition. ${p}`,
+  "expand": (p) =>
+    `Outpaint and extend this image beyond its current borders, continuing the scene and lighting naturally in every direction. ${p}`,
+  "restyle": (p) =>
+    `Re-render this image in a new visual style: ${p || "a tasteful artistic style"}. Keep the same composition and subject.`,
+};
+
 function parseImage(dataUrl?: string): { mimeType: string; data: string } | undefined {
   if (!dataUrl) return undefined;
   const m = /^data:([^;]+);base64,(.*)$/s.exec(dataUrl);
@@ -51,9 +64,8 @@ export async function POST(req: NextRequest) {
     switch (tool.kind) {
       case "image":
       case "image-edit": {
-        const p = slug === "product-shot"
-          ? `Studio product photography. ${prompt}. Clean commercial lighting, high detail.`
-          : prompt!;
+        const wrap = IMAGE_PROMPTS[slug];
+        const p = wrap ? wrap(prompt || "") : (prompt || "");
         const dataUrl = await generateImage(p, tool.kind === "image-edit" ? ref : undefined);
         stored = await saveDataUrl(dataUrl);
         output = stored;

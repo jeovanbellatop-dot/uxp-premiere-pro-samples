@@ -27,6 +27,18 @@ export const TOOLS: Tool[] = [
   { slug: "product-shot", name: "Foto de Produto", area: "Marketing", kind: "image", cost: 6,
     description: "Transforme um produto simples numa cena de estúdio.", available: true,
     placeholder: "Um frasco de perfume sobre pedra molhada, luz suave da manhã, anúncio de luxo" },
+  { slug: "remove-bg", name: "Remover Fundo", area: "Imagem", kind: "image-edit", cost: 3,
+    description: "Recorta o fundo e deixa só o assunto.", needsImage: true, available: true,
+    placeholder: "(opcional) deixe só o produto, fundo branco" },
+  { slug: "upscale", name: "Melhorar Imagem", area: "Imagem", kind: "image-edit", cost: 4,
+    description: "Mais nitidez, detalhe e resolução.", needsImage: true, available: true,
+    placeholder: "(opcional) mais nitidez e detalhes" },
+  { slug: "expand", name: "Expandir Imagem", area: "Imagem", kind: "image-edit", cost: 5,
+    description: "Amplia a cena além das bordas.", needsImage: true, available: true,
+    placeholder: "(opcional) estenda o cenário dos lados" },
+  { slug: "restyle", name: "Trocar Estilo", area: "Imagem", kind: "image-edit", cost: 5,
+    description: "Aplica um novo estilo visual à imagem.", needsImage: true, available: true,
+    placeholder: "estilo aquarela, anime, 3D, pintura a óleo…" },
 
   // Texto
   { slug: "prompt-enhancer", name: "Melhorar Prompt", area: "Criar", kind: "text", cost: 1,
