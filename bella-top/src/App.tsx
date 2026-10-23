@@ -524,8 +524,8 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Rodapé do Sidebar com Perfil & Logout (apenas para perfis não-operador) */}
-        {!isOperatorProfile && (
+        {/* Rodapé do Sidebar com Perfil & Logout: todos os perfis precisam do botão Sair */}
+        {Boolean(activeUser) && (
           <div className="p-3 border-t border-[#2E2428] bg-[#160E12]/90 space-y-2">
             <div className="flex items-center gap-2">
               <button

@@ -171,12 +171,39 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
 
   const isExpedicaoSector = effectiveSector === 'EXPEDICAO' || (!displayMachines.length && activeUser?.sectors?.includes('EXPEDICAO'));
 
-  if (effectiveSector === 'EMBARQUE') {
-    return <ShippingCockpit onSelectOp={onSelectOp} />;
-  }
-
-  if (isExpedicaoSector) {
-    return <ExpeditionCockpit onSelectOp={onSelectOp} />;
+  // Postos de pessoa (Expedição e Embarque): mesma barra do topo das máquinas, com o botão Sair.
+  if (effectiveSector === 'EMBARQUE' || isExpedicaoSector) {
+    const stationSession = activeMachine ? getMachineSession(activeMachine.id) : null;
+    const exitStation = () => {
+      if (!window.confirm('Deseja sair do sistema?')) return;
+      if (activeMachine && stationSession) logoutMachineOperator(activeMachine.id);
+      if (logout) logout();
+    };
+    return (
+      <div className="space-y-3">
+        <header className="sticky top-0 z-20 -mx-3 sm:mx-0 px-3 sm:px-4 py-2.5 bg-white/95 backdrop-blur border-b sm:border sm:rounded-2xl border-[#EFE6E0] flex items-center justify-between gap-2">
+          <span className="w-16 shrink-0" />
+          <div className="min-w-0 text-center">
+            <p className="text-sm font-black text-[#1C1418] truncate">
+              {effectiveSector === 'EMBARQUE' ? 'Embarque' : 'Expedição & Embalagem'}
+            </p>
+            <p className="text-[11px] text-[#8A7D77] truncate">
+              {stationSession?.operatorName || activeUser?.name || 'Operador'}
+            </p>
+          </div>
+          <button
+            id="btn_logout_station"
+            onClick={exitStation}
+            className="shrink-0 h-9 px-2.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-bold flex items-center gap-1 cursor-pointer"
+            title="Sair"
+          >
+            <LogOut size={16} />
+            <span>Sair</span>
+          </button>
+        </header>
+        {effectiveSector === 'EMBARQUE' ? <ShippingCockpit onSelectOp={onSelectOp} /> : <ExpeditionCockpit onSelectOp={onSelectOp} />}
+      </div>
+    );
   }
 
   if (!activeMachine) {
