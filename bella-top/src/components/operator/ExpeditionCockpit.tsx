@@ -35,6 +35,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
     pauseOperation,
     resumeOperation,
     finishOperation,
+    isReleasedForFactory,
   } = useMesStore();
 
   const activeUser = authenticatedUser || currentUser;
@@ -54,6 +55,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
   }> = [];
 
   orders.forEach((order) => {
+    // OP ainda com o PCP não chega na fábrica.
+    if (!isReleasedForFactory(order)) return;
     const expStep = order.steps.find((s) => s.processTypeId === 'proc_expedicao');
     if (!expStep) return;
 

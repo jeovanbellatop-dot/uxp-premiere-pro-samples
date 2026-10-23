@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ExtractedOpData } from '../../types/mes';
-import { PRODUCT_KEY_OPTIONS, getProductKeyLabel } from '../../data/initialData';
+import { PRODUCT_KEY_OPTIONS, getProductKeyLabel, identifyProductKey } from '../../data/initialData';
 import {
   Save,
   X,
@@ -51,9 +51,12 @@ export const PcpManualReviewForm: React.FC<PcpManualReviewFormProps> = ({
     impressaoFrente: initialData.impressaoFrente || 'Conforme Layout',
     impressaoVerso: initialData.impressaoVerso || 'Sem impressão',
     produtoConfirmadoPcp:
-      initialData.produtoConfirmadoPcp || initialData.produtoSugeridoIa || 'NAO_IDENTIFICADO',
+      initialData.produtoConfirmadoPcp ||
+      initialData.produtoSugeridoIa ||
+      identifyProductKey({ productName: initialData.produtoNome, model: initialData.modelo, productCode: initialData.codigoProduto, handleType: initialData.tipoAlca }),
     tipoAlca: (initialData.tipoAlca || 'VAZADA') as 'VAZADA' | 'FITA' | 'CORDAO' | 'NENHUMA',
     usoCordao: Boolean(initialData.usoCordao),
+    tipoCordao: (initialData.tipoCordao === 'AUTOMATICO' || initialData.tipoCordao === 'MANUAL' ? initialData.tipoCordao : '') as '' | 'AUTOMATICO' | 'MANUAL',
     usoVisor: Boolean(initialData.usoVisor),
     prazoEntrega: initialData.prazoEntrega
       ? new Date(initialData.prazoEntrega).toISOString().substring(0, 10)
@@ -88,6 +91,13 @@ export const PcpManualReviewForm: React.FC<PcpManualReviewFormProps> = ({
     }
     if (!formData.alturaMm || formData.alturaMm <= 0) {
       errors.alturaMm = 'Informe a altura em milímetros (ex: 450 para 45cm).';
+    }
+    // Sem isso o roteiro fica incompleto e a OP não poderia ir para a fábrica.
+    if (!formData.produtoConfirmadoPcp || formData.produtoConfirmadoPcp === 'NAO_IDENTIFICADO') {
+      errors.produtoConfirmadoPcp = 'Escolha o produto: ele define as etapas do roteiro.';
+    }
+    if (formData.usoCordao && !formData.tipoCordao) {
+      errors.tipoCordao = 'Escolha se o cordão é automático ou manual.';
     }
 
     setFormErrors(errors);
@@ -142,6 +152,9 @@ export const PcpManualReviewForm: React.FC<PcpManualReviewFormProps> = ({
     if (initialData.usoCordao !== formData.usoCordao) {
       diffs.push(`Cordão: ${initialData.usoCordao ? 'Sim' : 'Não'} -> ${formData.usoCordao ? 'Sim' : 'Não'}`);
     }
+    if (formData.usoCordao && (initialData.tipoCordao || '') !== formData.tipoCordao) {
+      diffs.push(`Tipo de cordão: "${initialData.tipoCordao || 'não informado'}" -> "${formData.tipoCordao}"`);
+    }
     if (initialData.usoVisor !== formData.usoVisor) {
       diffs.push(`Visor: ${initialData.usoVisor ? 'Sim' : 'Não'} -> ${formData.usoVisor ? 'Sim' : 'Não'}`);
     }
@@ -174,6 +187,9 @@ export const PcpManualReviewForm: React.FC<PcpManualReviewFormProps> = ({
       produtoConfirmadoPcp: formData.produtoConfirmadoPcp,
       tipoAlca: formData.tipoAlca,
       usoCordao: formData.usoCordao,
+      // Com cordão o PCP escolhe automático/manual; sem cordão fica confirmado "nenhum".
+      tipoCordao: formData.usoCordao ? (formData.tipoCordao || undefined) : 'NENHUM',
+      revisadoPcp: true,
       usoVisor: formData.usoVisor,
       prazoEntrega: new Date(formData.prazoEntrega).toISOString(),
       observacoesTecnicas: formData.observacoesTecnicas.trim(),
@@ -571,6 +587,7 @@ export const PcpManualReviewForm: React.FC<PcpManualReviewFormProps> = ({
                 </option>
               ))}
             </select>
+            {formErrors.produtoConfirmadoPcp && <span className="text-[10px] text-rose-600 font-bold block mt-1">{formErrors.produtoConfirmadoPcp}</span>}
             <p className="text-[10px] text-[#6E615B] mt-1 leading-relaxed">
               Sugestão da IA:{' '}
               <span className="font-bold text-[#3A3034]">
@@ -606,6 +623,22 @@ export const PcpManualReviewForm: React.FC<PcpManualReviewFormProps> = ({
               />
               <span className="text-xs font-bold text-[#1C1418]">Uso de Cordão / Fio</span>
             </label>
+
+            {formData.usoCordao && (
+              <select
+                value={formData.tipoCordao}
+                onChange={(e) => setFormData({ ...formData, tipoCordao: e.target.value as '' | 'AUTOMATICO' | 'MANUAL' })}
+                className="col-span-2 w-full px-3 py-2.5 rounded-xl border border-[#E5DAD3] bg-white text-xs font-bold text-[#1C1418]"
+                aria-label="Tipo de cordão"
+              >
+                <option value="">Tipo de cordão: escolha</option>
+                <option value="AUTOMATICO">Cordão automático (na Máquina 3)</option>
+                <option value="MANUAL">Cordão manual (posto de Cordão Manual)</option>
+              </select>
+            )}
+            {formData.usoCordao && formErrors.tipoCordao && (
+              <span className="col-span-2 text-[10px] text-rose-600 font-bold block">{formErrors.tipoCordao}</span>
+            )}
 
             <label className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-[#E5DAD3] cursor-pointer hover:border-[#E30A78] transition-colors">
               <input

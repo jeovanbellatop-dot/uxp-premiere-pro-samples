@@ -295,6 +295,8 @@ export interface ExtractedOpData {
   };
   inconsistencias?: string[];
   precisaRevisaoPcp: boolean;
+  /** O PCP revisou e confirmou os dados no formulário (ex.: "sem cordão" para cliente de cordão manual). */
+  revisadoPcp?: boolean;
   rawText?: string;
   images?: OpAttachedImage[];
   // Referência Visual Oficial do Layout e Foto Principal

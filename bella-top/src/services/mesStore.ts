@@ -1863,6 +1863,57 @@ class MesStore {
   // ==========================================
   // FILA DE CORTE E SOLDA (COMPARTILHADA NAS 3 MÁQUINAS ATIVAS)
   // ==========================================
+  /** OP liberada pelo PCP: só essas aparecem para a fábrica. */
+  public isReleasedForFactory(order: ProductionOrder): boolean {
+    const status = order.status as string;
+    return status !== 'REVISAO_PCP' && status !== 'CANCELADA' && status !== 'BLOQUEADA';
+  }
+
+  /**
+   * Tudo o que impede a OP de sair para a fábrica, em português, antes de lançar.
+   * Usa as mesmas regras que a criação da OP: lista vazia = a OP nasce PROGRAMADA.
+   */
+  public getReleaseIssues(
+    opData: ExtractedOpData,
+    customSteps?: Array<{ processTypeId: string; processName: string; machineId: string; needsMachineAllocation?: boolean }>
+  ): string[] {
+    const issues: string[] = [];
+    if (opData.precisaRevisaoPcp) {
+      issues.push('Há dados com baixa confiança na leitura da OP: revise e confirme no formulário de revisão.');
+    }
+    const route = customSteps ? null : this.generateRouteForOpData(opData);
+    const blueprint = route
+      ? route.blueprint
+      : buildRouteBlueprint({
+          productName: opData.produtoNome,
+          productCode: opData.codigoProduto,
+          model: opData.modelo,
+          client: opData.cliente,
+          printingMethod: opData.tipoImpressao,
+          handleType: opData.tipoAlca,
+          hasCord: opData.usoCordao,
+          cordMode: opData.tipoCordao,
+          hasWindow: opData.usoVisor,
+          productKeyOverride: opData.produtoConfirmadoPcp || opData.produtoSugeridoIa,
+          pcpConfirmed: Boolean(opData.revisadoPcp),
+        });
+    if (blueprint.needsPcpValidation) issues.push(...blueprint.warnings);
+    const steps = customSteps || route!.steps;
+    steps
+      .filter((st) => st.processTypeId !== 'proc_expedicao' && (!st.machineId || st.needsMachineAllocation))
+      .forEach((st) => issues.push(`Etapa "${st.processName}" sem máquina definida: escolha a máquina no roteiro.`));
+    return issues;
+  }
+
+  /** Pendências de uma OP já lançada que ainda está em revisão do PCP. */
+  public getOrderReleaseIssues(order: ProductionOrder): string[] {
+    const issues: string[] = [];
+    order.steps
+      .filter((st) => st.processTypeId !== 'proc_expedicao' && (!st.assignedMachineId || st.needsMachineAllocation))
+      .forEach((st) => issues.push(`Etapa "${st.processName}" sem máquina definida.`));
+    return issues;
+  }
+
   public getAvailableCorteSoldaOps(machineId: string): Array<{
     order: ProductionOrder;
     step: OperationStep;
@@ -1880,6 +1931,8 @@ class MesStore {
 
     this.orders.forEach((order) => {
       if (order.status === 'FINALIZADA' || order.status === 'EXPEDICAO') return;
+      // OP ainda com o PCP não chega na fábrica.
+      if (!this.isReleasedForFactory(order)) return;
 
       order.steps.forEach((step) => {
         if (step.processTypeId !== 'proc_solda') return;
@@ -2364,6 +2417,7 @@ class MesStore {
     const userMachines = this.getMachinesForUser(activeUser, sectorToCheck).map((m) => m.id);
 
     return this.orders.filter((order) => {
+      if (!this.isReleasedForFactory(order)) return false;
       return order.steps.some((step) => {
         const stepProcess = (step.processName || '').toUpperCase();
         const isSectorMatch = userSectors.some((s) => {
@@ -3110,6 +3164,7 @@ class MesStore {
       cordMode: opData.tipoCordao,
       hasWindow: opData.usoVisor,
       productKeyOverride: opData.produtoConfirmadoPcp || opData.produtoSugeridoIa,
+      pcpConfirmed: Boolean(opData.revisadoPcp),
     });
 
     const sequenceProcessIds: string[] = [...routeBlueprint.processIds];
@@ -3312,6 +3367,7 @@ class MesStore {
             cordMode: opData.tipoCordao,
             hasWindow: opData.usoVisor,
             productKeyOverride: opData.produtoConfirmadoPcp || opData.produtoSugeridoIa,
+            pcpConfirmed: Boolean(opData.revisadoPcp),
           }),
         }
       : null;
@@ -4061,6 +4117,7 @@ class MesStore {
     const oldMachineName = step.assignedMachineName;
     step.assignedMachineId = newMachine.id;
     step.assignedMachineName = newMachine.name;
+    step.needsMachineAllocation = undefined;
 
     this.logAudit(
       'ALTERACAO_MAQUINA',
@@ -4100,7 +4157,14 @@ class MesStore {
     const order = this.orders.find((o) => o.id === opId);
     if (!order) return;
 
+    // Só sai para a fábrica pronta para rodar: nenhuma etapa sem máquina.
+    const issues = this.getOrderReleaseIssues(order);
+    if (issues.length > 0) {
+      throw new Error(`A OP ${order.opNumber} ainda não pode ir para a fábrica. Corrija antes: ${issues.join(' ')}`);
+    }
+
     order.status = 'PROGRAMADA';
+    order.revisionNotes = undefined;
     if (order.steps.length > 0 && order.steps[0].status === 'AGUARDANDO_ANTERIOR') {
       order.steps[0].status = 'PRONTA';
     }
@@ -4168,6 +4232,8 @@ class MesStore {
 
     const queue: Array<{ order: ProductionOrder; step: OperationStep }> = [];
     this.orders.forEach((o) => {
+      // OP ainda com o PCP não chega na fábrica.
+      if (!this.isReleasedForFactory(o)) return;
       o.steps.forEach((step) => {
         if (
           step.assignedMachineId === machineId &&

@@ -45,7 +45,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
   onClose,
   onOpCreated,
 }) => {
-  const { createOrderFromExtracted, generateRouteForOpData, machines, logAudit } = useMesStore();
+  const { createOrderFromExtracted, generateRouteForOpData, getReleaseIssues, machines, logAudit } = useMesStore();
 
   // Os arquivos são lidos UMA ÚNICA VEZ no momento da seleção (loadFileOnce) e
   // guardados já materializados em memória. Guardar o objeto File cru e lê-lo
@@ -319,6 +319,16 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
       setErrorMsg('Existem dados pendentes ou não identificados com certeza. Preencha os campos abaixo no formulário de revisão para liberar a OP.');
       return;
     }
+    // A OP só sai do PCP pronta para rodar: as mesmas regras da criação da OP
+    // são conferidas aqui, e qualquer pendência fica com o PCP, nunca com a fábrica.
+    const issues = getReleaseIssues(extractedData, editableRoute);
+    if (issues.length > 0) {
+      setSuccessMsg(null);
+      setErrorMsg('Antes de liberar para a produção, corrija: ' + issues.map((i) => '• ' + i).join(' '));
+      const onlyMachineIssues = issues.every((i) => i.includes('sem máquina definida'));
+      if (!onlyMachineIssues) setIsEditingManualData(true);
+      return;
+    }
     // O arquivo original pode ser grande: a sincronização remove binários
     // antes de enviar a OP ao Firestore e mantém apenas a referência do arquivo.
     const newOrder = createOrderFromExtracted(extractedData, editableRoute);
@@ -336,6 +346,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
         ...updated[stepIdx],
         machineId: mach.id,
         machineName: mach.name,
+        needsMachineAllocation: false,
       };
       return updated;
     });

@@ -250,11 +250,32 @@ async function main() {
     if (s.layout === 'url') check(layoutAtCreation === images[0].urlOrBase64, `${tag}: layout principal não ficou na OP`);
 
     // ---------- 2. Revisão do PCP ----------
+    // O botão "Liberar" do PCP confere as mesmas regras da criação: nenhuma surpresa depois.
+    const releaseIssues = store.getReleaseIssues(opData);
+    check((releaseIssues.length > 0) === (order.status === 'REVISAO_PCP'), `${tag}: conferência do botão Liberar (${releaseIssues.length} pendências) não bate com o status da OP (${order.status})`);
+    // A fábrica só enxerga OP liberada.
+    const inFactoryView = () => {
+      const machines = store.getAllFactoryMachines().map((m: any) => m.id);
+      const inQueues = machines.some((m: string) => {
+        const op = USERS.find((u) => u.authorizedMachineIds.includes(m) && u.role !== 'ADMIN');
+        if (!op) return false;
+        login(op.id, m);
+        const seen =
+          store.getMachineQueue(m).some((q: any) => q.order.id === order.id) ||
+          store.getAvailableCorteSoldaOps(m).some((q: any) => q.order.id === order.id) ||
+          store.getOrdersForUser().some((o: any) => o.id === order.id);
+        return seen;
+      });
+      store.logoutMachineOperator();
+      return inQueues;
+    };
     if (order.status === 'REVISAO_PCP') {
       check(expectsPcpReview(s), `${tag}: OP caiu em revisão do PCP sem motivo (${order.revisionNotes || ''})`);
+      check(!inFactoryView(), `${tag}: OP em revisão do PCP apareceu numa fila da fábrica`);
       expectThrow(() => { login('u_welton', 'REFILADEIRA_01'); return store.startOperation(order.steps[0].id, order.steps[0].assignedMachineId, 'u_welton'); }, `${tag}: etapa iniciou com OP em revisão do PCP`);
       store.logoutMachineOperator();
       store.approveOpRoute(order.id);
+      check(inFactoryView(), `${tag}: OP liberada pelo PCP não apareceu na fábrica`);
     } else {
       check(!expectsPcpReview(s), `${tag}: OP deveria ir para revisão do PCP e não foi`);
     }

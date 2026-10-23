@@ -32,8 +32,10 @@ export const OpDetailModal: React.FC<OpDetailModalProps> = ({
   onClose,
   onSelectMachine,
 }) => {
-  const { orders } = useMesStore();
+  const { orders, authenticatedUser, allFactoryMachines, getOrderReleaseIssues, updateStepMachine, approveOpRoute } = useMesStore();
   const [isPdfMissingModalOpen, setIsPdfMissingModalOpen] = useState(false);
+  const [releaseError, setReleaseError] = useState<string | null>(null);
+  const [releaseOk, setReleaseOk] = useState<string | null>(null);
   const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false);
 
   if (!opId) return null;
@@ -147,6 +149,89 @@ export const OpDetailModal: React.FC<OpDetailModalProps> = ({
 
           {/* Conteúdo Principal Somente Leitura */}
           <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
+
+            {/* OP em revisão: o PCP resolve aqui e libera; a fábrica só vê OP liberada */}
+            {order.status === 'REVISAO_PCP' && (() => {
+              const canRelease =
+                authenticatedUser?.role === 'ADMIN' ||
+                authenticatedUser?.role === 'MASTER' ||
+                authenticatedUser?.role === 'PCP' ||
+                Boolean(authenticatedUser?.sectors?.some((sec) => sec === 'ADMIN' || sec === 'PCP'));
+              const issues = getOrderReleaseIssues(order);
+              const stepsWithoutMachine = order.steps.filter(
+                (st) => st.processTypeId !== 'proc_expedicao' && (!st.assignedMachineId || st.needsMachineAllocation)
+              );
+              return (
+                <div className="rounded-2xl border border-[#E8B54A] bg-[#FFF4DB] p-4 space-y-3 text-[#5C3800]">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div className="text-xs leading-relaxed">
+                      <span className="font-black block">Esta OP ainda não foi liberada para a fábrica</span>
+                      Ela não aparece para os operadores até o PCP liberar.
+                      {order.revisionNotes && <span className="block mt-1">Motivo: {order.revisionNotes}</span>}
+                    </div>
+                  </div>
+
+                  {canRelease && stepsWithoutMachine.map((st) => {
+                    const options = allFactoryMachines.filter(
+                      (m) => m.isActive !== false && m.status !== 'INATIVA' && m.processTypeId === st.processTypeId
+                    );
+                    return (
+                      <label key={st.id} className="flex flex-wrap items-center gap-2 text-xs font-bold">
+                        <span>Máquina para "{st.processName}":</span>
+                        <select
+                          defaultValue=""
+                          onChange={(e) => {
+                            setReleaseError(null);
+                            try {
+                              updateStepMachine(st.id, e.target.value);
+                            } catch (err: any) {
+                              setReleaseError(err?.message || 'Máquina não compatível.');
+                            }
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg border border-[#E8B54A] bg-white text-[#1C1418]"
+                        >
+                          <option value="" disabled>Escolha a máquina</option>
+                          {options.map((m) => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                    );
+                  })}
+
+                  {issues.length > 0 && (
+                    <ul className="text-xs list-disc pl-5 space-y-0.5">
+                      {issues.map((i) => <li key={i}>{i}</li>)}
+                    </ul>
+                  )}
+                  {releaseError && <p className="text-xs font-bold text-rose-700">{releaseError}</p>}
+                  {releaseOk && <p className="text-xs font-bold text-emerald-700">{releaseOk}</p>}
+
+                  {canRelease ? (
+                    <button
+                      type="button"
+                      disabled={issues.length > 0}
+                      onClick={() => {
+                        setReleaseError(null);
+                        try {
+                          approveOpRoute(order.id);
+                          setReleaseOk(`OP ${order.opNumber} liberada: já aparece na fila da fábrica.`);
+                        } catch (err: any) {
+                          setReleaseError(err?.message || 'Não foi possível liberar a OP.');
+                        }
+                      }}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-black flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>LIBERAR PARA PRODUÇÃO</span>
+                    </button>
+                  ) : (
+                    <p className="text-xs">Somente o PCP ou o administrador pode liberar esta OP.</p>
+                  )}
+                </div>
+              );
+            })()}
             
             {/* Bloco 1: Grid de Ficha Técnica da OP */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

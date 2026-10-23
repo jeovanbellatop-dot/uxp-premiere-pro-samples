@@ -839,6 +839,8 @@ export interface RouteBlueprintInput {
   hasWindow?: boolean;
   /** Produto confirmado pelo PCP na tela de revisao. Vence a identificacao automatica. */
   productKeyOverride?: ProductKey | string;
+  /** O PCP revisou e confirmou os dados: uma escolha explícita dele não volta para revisão. */
+  pcpConfirmed?: boolean;
 }
 
 export interface RouteBlueprint {
@@ -1013,7 +1015,7 @@ export function buildRouteBlueprint(input: RouteBlueprintInput): RouteBlueprint 
   if (cordForcedByClient && rule.flow === "PADRAO") {
     if (opIndicatesCord || cordMode !== "NENHUM") {
       cordMode = "MANUAL";
-    } else {
+    } else if (!input.pcpConfirmed) {
       needsPcpValidation = true;
       warnings.push("Cliente com regra fixa de cordão manual, mas a OP não indica uso de cordão. Confirmar com o PCP.");
     }
