@@ -20,6 +20,7 @@ import { OpProductThumbnail } from '../common/OpProductThumbnail';
 import { FullLayoutModal } from '../pcp/FullLayoutModal';
 import { FinishStepModal } from './FinishStepModal';
 import { PauseModal } from './PauseModal';
+import { PackingModal } from './PackingModal';
 import { ProductionOrder, OperationStep } from '../../types/mes';
 
 interface ExpeditionCockpitProps {
@@ -36,7 +37,9 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
     resumeOperation,
     finishOperation,
     isReleasedForFactory,
+    registerPacking,
   } = useMesStore();
+  const [packingOrder, setPackingOrder] = useState<ProductionOrder | null>(null);
 
   const activeUser = authenticatedUser || currentUser;
 
@@ -529,11 +532,34 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                       </>
                     )}
 
-                    {isDone && (
-                      <span className="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200 text-xs font-bold flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-purple-600" />
-                        <span>Expedida</span>
-                      </span>
+                    {isDone && !order.packing && order.status === 'EXPEDICAO' && (
+                      <button
+                        onClick={() => setPackingOrder(order)}
+                        className="px-4 py-2.5 rounded-xl bg-[#E30A78] hover:bg-[#B30A5C] text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                      >
+                        <PackageCheck className="w-4 h-4" />
+                        <span>REGISTRAR CAIXAS E PESO</span>
+                      </button>
+                    )}
+
+                    {isDone && order.packing && (
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200 text-xs font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                          <span>
+                            {order.packing.totalCaixas} cx · {order.packing.pesoTotalKg.toLocaleString('pt-BR')} kg ·{' '}
+                            {order.shipping?.etapa === 'CONCLUIDO' ? 'Concluída' : 'No Embarque'}
+                          </span>
+                        </span>
+                        {order.shipping?.etapa === 'EMITIR_NF' && (
+                          <button
+                            onClick={() => setPackingOrder(order)}
+                            className="text-[11px] font-bold text-[#B30A5C] underline cursor-pointer"
+                          >
+                            Corrigir caixas
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -541,6 +567,18 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             );
           })}
         </div>
+      )}
+
+      {packingOrder && (
+        <PackingModal
+          order={packingOrder}
+          expectedPieces={packingOrder.steps.find((st) => st.processTypeId === 'proc_expedicao')?.goodQuantity || 0}
+          onClose={() => setPackingOrder(null)}
+          onConfirm={(linhas) => {
+            registerPacking(packingOrder.id, linhas);
+            setPackingOrder(null);
+          }}
+        />
       )}
 
       {/* Modal de Finalização de Etapa / Apontamento de Perdas de Embalagem */}

@@ -79,7 +79,8 @@ export type SystemSectorCode =
   | 'CORDAO_MANUAL'
   | 'COSTURA'
   | 'TERCEIRIZADO'
-  | 'EXPEDICAO';
+  | 'EXPEDICAO'
+  | 'EMBARQUE';
 
 export interface SectorDefinition {
   code: SystemSectorCode;
@@ -378,6 +379,38 @@ export interface OperationStep {
   technicalSpecsNote?: string;
 }
 
+/** Uma linha da pesagem do Carlos: N caixas com o mesmo peso e as mesmas peças. */
+export interface PackingLine {
+  caixas: number;
+  pesoKg: number;
+  pecasPorCaixa: number;
+}
+
+/** Caixas, pesos e peças registrados pela Expedição (Carlos) para o Embarque. */
+export interface OrderPacking {
+  linhas: PackingLine[];
+  totalCaixas: number;
+  pesoTotalKg: number;
+  totalPecas: number;
+  registradoPor: string;
+  registradoEm: string;
+}
+
+/** Situação do pedido no Embarque (Ramon). CONCLUIDO = encerrado, só no histórico. */
+export type ShippingStage = 'EMITIR_NF' | 'EMBARQUE' | 'POS_EMBARQUE' | 'CONCLUIDO';
+
+export interface OrderShipping {
+  etapa: ShippingStage;
+  notaFiscal?: string;
+  nfRegistradaPor?: string;
+  nfRegistradaEm?: string;
+  embarcadoEm?: string;
+  embarqueRegistradoPor?: string;
+  embarqueRegistradoEm?: string;
+  concluidoPor?: string;
+  concluidoEm?: string;
+}
+
 export interface ProductionOrder {
   id: string;
   opNumber: string;
@@ -440,6 +473,10 @@ export interface ProductionOrder {
   layout_status?: 'COMPLETO' | 'LAYOUT_PENDENTE' | 'ORDEM_DE_PRODUCAO_PENDENTE';
   extractedConfidence?: number;
   revisionNotes?: string;
+  /** Pesagem da Expedição (Carlos). */
+  packing?: OrderPacking;
+  /** Nota fiscal e embarque (Ramon). */
+  shipping?: OrderShipping;
   layoutImage?: string;
   layoutImages?: OpAttachedImage[];
   // Referência Visual Oficial do Layout e Foto Principal da Sacola/Saco

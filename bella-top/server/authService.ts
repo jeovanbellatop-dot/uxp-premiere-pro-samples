@@ -204,6 +204,8 @@ export class ServerAuthService {
       { id: 'user_gabriel', name: 'Gabriel', login: 'gabriel', role: 'OPERATOR', sectors: ['FLEXOGRAFIA'], jobTitle: 'Responsável Operacional da Flexografia', sector: 'FLEXOGRAFIA', machines: ['FLEXOGRAFIA_01'] },
       { id: 'user_viola', name: 'Viola', login: 'viola', role: 'OPERATOR', sectors: ['ESTAMPARIA'], jobTitle: 'Responsável da Estamparia / Carrossel', sector: 'ESTAMPARIA', machines: ['CARROSSEL_01', 'CARROSSEL_PEQUENA_01'] },
       { id: 'user_carlos', name: 'Carlos', login: 'carlos', role: 'EXPEDITION', sectors: ['EXPEDICAO'], jobTitle: 'Expedição', sector: 'EXPEDICAO', machines: ['workstation_proc_expedicao'] },
+      // Embarque: nota fiscal, transportadora e embarque do pedido
+      { id: 'user_ramon', name: 'Ramon', login: 'ramon', role: 'EXPEDITION', sectors: ['EMBARQUE'], jobTitle: 'Embarque (nota fiscal e frete)', sector: 'EMBARQUE', machines: ['workstation_embarque'] },
     ];
 
     for (const def of defaults) {

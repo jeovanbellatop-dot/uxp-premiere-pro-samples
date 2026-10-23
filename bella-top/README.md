@@ -74,3 +74,13 @@ master, admin, robson (PCP), elton (Refiladeira + Flexografia), toninho (Máquin
 teste (Refiladeira + Máquinas 2/3/4), welton (Refiladeira), gabriel (Flexografia), viola (Carrossel e Carrossel Pequena)
 e carlos (Expedição). Antes de desligar o modo de teste e usar na fábrica, troque as senhas pela tela de usuários
 (ou `npm run users:test -- --trocar-senhas-padrao`).
+
+## Expedição (Carlos) e Embarque (Ramon)
+
+1. Depois de embalar, o Carlos clica em **Registrar caixas e peso** e informa linhas de
+   "caixas · peso de cada (kg) · peças em cada" (ex.: 10 × 20 kg × 500 + 1 × 15,9 kg × 380).
+   O sistema soma caixas, peso e peças e envia a OP ao Embarque.
+2. O Ramon (botão **Embarque** na tela de entrada) vê as caixas e passa a OP por:
+   **Emitir nota fiscal** (número da NF, uma por OP) → **Embarque** (data e hora da saída) →
+   **Pós-embarque** → **Concluir e encerrar**, quando a OP vai só para o **Histórico**.
+   Quem fez cada passo e quando ficam registrados.

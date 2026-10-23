@@ -23,6 +23,7 @@ export const SECTOR_DEFINITIONS = [
   { code: 'COSTURA' as SystemSectorCode, name: 'Costura', description: 'Costura estrutural da sacola box antes da alça' },
   { code: 'TERCEIRIZADO' as SystemSectorCode, name: 'Terceirizado', description: 'Recebimento e conferência de lote produzido fora da fábrica' },
   { code: 'EXPEDICAO' as SystemSectorCode, name: 'Expedição & Qualidade', description: 'Conferência técnica final, embalagem e expedição' },
+  { code: 'EMBARQUE' as SystemSectorCode, name: 'Embarque', description: 'Nota fiscal, contato com a transportadora e embarque do pedido' },
 ];
 
 export const INITIAL_PROCESS_TYPES: ProcessType[] = [
@@ -432,6 +433,26 @@ export const INITIAL_MACHINES: Machine[] = [
     authorizedOperatorIds: ['*'],
     historicalEfficiencyFactor: 0.9,
     capabilities: { observacoes: 'Conferência final, embalagem e liberação para coleta' }
+  },
+  {
+    // Posto de pessoa, não de máquina: nota fiscal e embarque do pedido (Ramon).
+    id: 'workstation_embarque',
+    code: 'EMB-01',
+    name: 'Embarque',
+    sector: 'Embarque',
+    processTypeId: 'proc_embarque',
+    status: 'DISPONIVEL',
+    isActive: true,
+    nominalSpeed: 0,
+    productionUnit: 'UNIDADES',
+    compatibleProducts: ['*'],
+    compatibleMaterials: ['*'],
+    grammageRange: { min: 0, max: 9999 },
+    widthRange: { min: 0, max: 9999 },
+    currentShift: 'TURNO_1',
+    authorizedOperatorIds: ['*'],
+    historicalEfficiencyFactor: 1,
+    capabilities: { observacoes: 'Nota fiscal, frete e embarque do pedido' }
   }
 ];
 

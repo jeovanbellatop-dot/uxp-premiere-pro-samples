@@ -1,5 +1,6 @@
 import {
   ProductionOrder,
+  PackingLine,
   Machine,
   ProductTechnicalSpec,
   ProcessType,
@@ -1499,6 +1500,7 @@ class MesStore {
     else if (macSector.includes('FLEXO')) targetSector = 'FLEXOGRAFIA';
     else if (macSector.includes('ESTAMP') || macSector.includes('SERIGR') || macSector.includes('CARROSS')) targetSector = 'ESTAMPARIA';
     else if (macSector.includes('CORTE') || macSector.includes('SOLDA')) targetSector = 'CORTE_SOLDA';
+    else if (macSector.includes('EMBARQ')) targetSector = 'EMBARQUE';
     else if (macSector.includes('EXPED')) targetSector = 'EXPEDICAO';
 
     const session: MachineSession = {
@@ -4257,6 +4259,126 @@ class MesStore {
 
     this.saveToStorage();
     return { success: true };
+  }
+
+  // ==========================================
+  // PESAGEM (CARLOS) E EMBARQUE (RAMON)
+  // ==========================================
+  private shippingActor(requiredSector: SystemSectorCode, action: string): User {
+    const user = this.authenticatedUser || this.currentUser;
+    if (!user) throw new Error('Entre no sistema para ' + action + '.');
+    if (!isPrivilegedUser(user) && !(user.sectors || []).includes(requiredSector)) {
+      throw new Error(`Somente o setor ${requiredSector === 'EMBARQUE' ? 'de Embarque' : 'de Expedição'} pode ${action}.`);
+    }
+    return user;
+  }
+
+  private findShippingOrder(opId: string): ProductionOrder {
+    const order = this.orders.find((o) => o.id === opId);
+    if (!order) throw new Error('Ordem de Produção não encontrada.');
+    return order;
+  }
+
+  /**
+   * Carlos registra as caixas da OP já embalada: linhas de "N caixas · peso · peças".
+   * Ao salvar, a OP vai para o Embarque (Ramon) em "Emitir nota fiscal".
+   */
+  public registerPacking(opId: string, linhas: PackingLine[]) {
+    const user = this.shippingActor('EXPEDICAO', 'registrar as caixas');
+    const order = this.findShippingOrder(opId);
+    if (order.status !== 'EXPEDICAO') {
+      throw new Error(`A OP ${order.opNumber} ainda não terminou a embalagem na Expedição.`);
+    }
+    if (order.shipping && order.shipping.etapa !== 'EMITIR_NF') {
+      throw new Error(`A nota fiscal da OP ${order.opNumber} já foi emitida: as caixas não podem mais ser alteradas.`);
+    }
+    const clean = (linhas || []).map((l) => ({
+      caixas: Number(l.caixas),
+      pesoKg: Math.round(Number(l.pesoKg) * 1000) / 1000,
+      pecasPorCaixa: Number(l.pecasPorCaixa),
+    }));
+    if (clean.length === 0) throw new Error('Informe pelo menos uma linha de caixas.');
+    clean.forEach((l, i) => {
+      if (!Number.isInteger(l.caixas) || l.caixas < 1) throw new Error(`Linha ${i + 1}: a quantidade de caixas deve ser um número inteiro maior que zero.`);
+      if (!(l.pesoKg > 0)) throw new Error(`Linha ${i + 1}: informe o peso da caixa em kg.`);
+      if (!Number.isInteger(l.pecasPorCaixa) || l.pecasPorCaixa < 1) throw new Error(`Linha ${i + 1}: informe quantas peças vão em cada caixa.`);
+    });
+    const now = new Date().toISOString();
+    order.packing = {
+      linhas: clean,
+      totalCaixas: clean.reduce((t, l) => t + l.caixas, 0),
+      pesoTotalKg: Math.round(clean.reduce((t, l) => t + l.caixas * l.pesoKg, 0) * 1000) / 1000,
+      totalPecas: clean.reduce((t, l) => t + l.caixas * l.pecasPorCaixa, 0),
+      registradoPor: user.name,
+      registradoEm: now,
+    };
+    order.shipping = { ...(order.shipping || {}), etapa: 'EMITIR_NF' };
+    this.logAudit(
+      'EXPEDICAO_PESAGEM',
+      'OP',
+      order.id,
+      `${user.name} registrou ${order.packing.totalCaixas} caixa(s), ${order.packing.pesoTotalKg.toLocaleString('pt-BR')} kg e ${order.packing.totalPecas.toLocaleString('pt-BR')} peça(s) da OP ${order.opNumber}: ` +
+        clean.map((l) => `${l.caixas} cx de ${l.pesoKg.toLocaleString('pt-BR')} kg com ${l.pecasPorCaixa} pç`).join(' + ') +
+        '. Enviada ao Embarque.'
+    );
+    this.saveToStorage();
+    return order.packing;
+  }
+
+  /** Ramon registra o número da nota fiscal (uma por OP). Próxima situação: Embarque. */
+  public registerInvoice(opId: string, notaFiscal: string) {
+    const user = this.shippingActor('EMBARQUE', 'registrar a nota fiscal');
+    const order = this.findShippingOrder(opId);
+    if (!order.packing || order.shipping?.etapa !== 'EMITIR_NF') {
+      throw new Error(`A OP ${order.opNumber} não está aguardando nota fiscal.`);
+    }
+    const nf = (notaFiscal || '').trim();
+    if (!nf) throw new Error('Informe o número da nota fiscal.');
+    const now = new Date().toISOString();
+    order.shipping = { ...order.shipping, etapa: 'EMBARQUE', notaFiscal: nf, nfRegistradaPor: user.name, nfRegistradaEm: now };
+    this.logAudit('EMBARQUE_NOTA_FISCAL', 'OP', order.id, `${user.name} registrou a nota fiscal ${nf} da OP ${order.opNumber}.`);
+    this.saveToStorage();
+  }
+
+  /** Ramon registra a data e hora em que a carga saiu. Próxima situação: Pós-embarque. */
+  public registerShipment(opId: string, embarcadoEm: string) {
+    const user = this.shippingActor('EMBARQUE', 'registrar o embarque');
+    const order = this.findShippingOrder(opId);
+    if (order.shipping?.etapa !== 'EMBARQUE') {
+      throw new Error(`A OP ${order.opNumber} não está aguardando embarque.`);
+    }
+    const when = new Date(embarcadoEm);
+    if (!embarcadoEm || isNaN(when.getTime())) throw new Error('Informe a data e a hora do embarque.');
+    const now = new Date().toISOString();
+    order.shipping = {
+      ...order.shipping,
+      etapa: 'POS_EMBARQUE',
+      embarcadoEm: when.toISOString(),
+      embarqueRegistradoPor: user.name,
+      embarqueRegistradoEm: now,
+    };
+    this.logAudit(
+      'EMBARQUE_REALIZADO',
+      'OP',
+      order.id,
+      `${user.name} registrou o embarque da OP ${order.opNumber} (NF ${order.shipping.notaFiscal}) em ${when.toLocaleString('pt-BR')}.`
+    );
+    this.saveToStorage();
+  }
+
+  /** Ramon conclui o pós-embarque: a OP é encerrada e fica só no histórico. */
+  public concludeShipping(opId: string) {
+    const user = this.shippingActor('EMBARQUE', 'concluir o pedido');
+    const order = this.findShippingOrder(opId);
+    if (order.shipping?.etapa !== 'POS_EMBARQUE') {
+      throw new Error(`A OP ${order.opNumber} ainda não foi embarcada.`);
+    }
+    const now = new Date().toISOString();
+    order.shipping = { ...order.shipping, etapa: 'CONCLUIDO', concluidoPor: user.name, concluidoEm: now };
+    order.status = 'FINALIZADA';
+    order.completedAt = order.completedAt || now;
+    this.logAudit('EMBARQUE_CONCLUIDO', 'OP', order.id, `${user.name} concluiu e encerrou a OP ${order.opNumber}. Pedido no histórico.`);
+    this.saveToStorage();
   }
 
   // Machine Queue helper

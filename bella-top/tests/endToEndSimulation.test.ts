@@ -58,6 +58,7 @@ const USERS = [
   mkUser('u_bia', 'Bia Acabamento', 'bia', 'OPERATOR', ['ALCA'], ['workstation_proc_colocar_alca', 'workstation_proc_cordao_manual', 'workstation_proc_costura']),
   mkUser('u_terc', 'Recebimento Terceirizado', 'terceiro', 'OPERATOR', ['ALCA'], ['workstation_proc_terceirizado']),
   mkUser('u_carlos', 'Carlos', 'carlos', 'EXPEDITION', ['EXPEDICAO'], ['workstation_proc_expedicao']),
+  mkUser('u_ramon', 'Ramon', 'ramon', 'EXPEDITION', ['EMBARQUE'], ['workstation_embarque']),
 ];
 
 // ---------------------------------------------------------------------------
@@ -464,13 +465,54 @@ async function main() {
     check(order.totalLosses === sumLoss, `${tag}: total de perdas ${order.totalLosses}, soma das etapas ${sumLoss}`);
     check(order.currentGoodQuantity === expectedReceived, `${tag}: saldo final ${order.currentGoodQuantity}, esperado ${expectedReceived}`);
     check(order.currentGoodQuantity + sumLoss === s.qty, `${tag}: boas + perdas (${order.currentGoodQuantity}+${sumLoss}) ≠ quantidade da OP (${s.qty})`);
-    if (order.currentGoodQuantity < s.qty) expectThrow(() => store.dispatchOp(order.id), `${tag}: despacho parcial sem justificativa foi aceito`);
+    // ---------- 5. Pesagem (Carlos) e Embarque (Ramon) ----------
+    const good = order.currentGoodQuantity;
+    // Caixas cheias + uma caixa com o excedente, como na fábrica.
+    const perBox = pick([100, 250, 500]);
+    const full = Math.floor(good / perBox);
+    const rest = good - full * perBox;
+    const linhas = [
+      ...(full > 0 ? [{ caixas: full, pesoKg: pick([18, 20, 22.5]), pecasPorCaixa: perBox }] : []),
+      ...(rest > 0 ? [{ caixas: 1, pesoKg: 15.9, pecasPorCaixa: rest }] : []),
+    ];
+    check(login('u_carlos', 'workstation_proc_expedicao').success, `${tag}: Carlos não entrou para pesar`);
+    expectThrow(() => store.registerInvoice(order.id, 'NF-ANTES'), `${tag}: Carlos conseguiu emitir nota fiscal`);
+    expectThrow(() => store.registerPacking(order.id, [{ caixas: 0, pesoKg: 20, pecasPorCaixa: 10 }]), `${tag}: pesagem com 0 caixas foi aceita`);
+    expectThrow(() => store.registerPacking(order.id, [{ caixas: 2, pesoKg: 0, pecasPorCaixa: 10 }]), `${tag}: pesagem sem peso foi aceita`);
     try {
-      store.dispatchOp(order.id, order.currentGoodQuantity < s.qty ? 'Envio parcial: perdas registradas' : undefined);
-    } catch (e: any) { check(false, `${tag}: despacho falhou: ${e.message}`); }
-    check(order.status === 'FINALIZADA', `${tag}: OP não ficou FINALIZADA após despacho`);
+      store.registerPacking(order.id, linhas);
+    } catch (e: any) { check(false, `${tag}: pesagem falhou: ${e.message}`); }
+    const pk = order.packing;
+    const expBoxes = linhas.reduce((t, l) => t + l.caixas, 0);
+    const expKg = Math.round(linhas.reduce((t, l) => t + l.caixas * l.pesoKg, 0) * 1000) / 1000;
+    check(pk && pk.totalCaixas === expBoxes && pk.pesoTotalKg === expKg && pk.totalPecas === good, `${tag}: totais da pesagem errados (${pk && [pk.totalCaixas, pk.pesoTotalKg, pk.totalPecas]} ≠ ${[expBoxes, expKg, good]})`);
+    check(order.shipping?.etapa === 'EMITIR_NF' && order.status === 'EXPEDICAO', `${tag}: depois da pesagem deveria estar em "Emitir nota fiscal" (${order.shipping?.etapa}/${order.status})`);
+
+    check(login('u_ramon', 'workstation_embarque').success, `${tag}: Ramon não entrou no Embarque`);
+    check(store.getSelectedSector() === 'EMBARQUE', `${tag}: posto do Embarque não abriu o setor EMBARQUE (${store.getSelectedSector()})`);
+    expectThrow(() => store.registerPacking(order.id, linhas), `${tag}: Ramon conseguiu alterar a pesagem`);
+    expectThrow(() => store.registerShipment(order.id, new Date().toISOString()), `${tag}: embarque antes da nota fiscal foi aceito`);
+    expectThrow(() => store.concludeShipping(order.id), `${tag}: conclusão antes do embarque foi aceita`);
+    expectThrow(() => store.registerInvoice(order.id, '   '), `${tag}: nota fiscal vazia foi aceita`);
+    const nf = 'NF' + opNumber;
+    try { store.registerInvoice(order.id, nf); } catch (e: any) { check(false, `${tag}: nota fiscal falhou: ${e.message}`); }
+    check(order.shipping?.etapa === 'EMBARQUE' && order.shipping?.notaFiscal === nf && order.shipping?.nfRegistradaPor === 'Ramon', `${tag}: nota fiscal não registrada (${JSON.stringify(order.shipping)})`);
+    expectThrow(() => login('u_carlos', 'workstation_proc_expedicao') && store.registerPacking(order.id, linhas), `${tag}: caixas alteradas depois da nota fiscal`);
+    login('u_ramon', 'workstation_embarque');
+    const shipAt = new Date(Date.now() - 3600000).toISOString();
+    try { store.registerShipment(order.id, shipAt); } catch (e: any) { check(false, `${tag}: embarque falhou: ${e.message}`); }
+    check(order.shipping?.etapa === 'POS_EMBARQUE' && order.shipping?.embarcadoEm === shipAt && order.status === 'EXPEDICAO', `${tag}: embarque não registrado ou OP encerrada cedo (${order.shipping?.etapa}/${order.status})`);
+    try { store.concludeShipping(order.id); } catch (e: any) { check(false, `${tag}: conclusão falhou: ${e.message}`); }
+    check(order.status === 'FINALIZADA' && order.shipping?.etapa === 'CONCLUIDO', `${tag}: OP não foi para o histórico (${order.status}/${order.shipping?.etapa})`);
+    // Persistência: outro aparelho enxerga os dados do embarque.
+    {
+      const other = new Store();
+      const ro = other.getOrders().find((o: any) => o.id === order.id);
+      check(ro?.packing?.totalCaixas === expBoxes && ro?.shipping?.notaFiscal === nf, `${tag}: pesagem/nota fiscal perdidas ao recarregar o aparelho`);
+      if (other.syncIntervalTimer) clearInterval(other.syncIntervalTimer);
+    }
     const audit = store.getAuditLogs().filter((a: any) => a.entityId === order.id || order.steps.some((x: any) => x.id === a.entityId));
-    for (const action of ['CRIAR_OP', 'START_OPERACAO', 'EXPEDICAO_FINALIZADA']) {
+    for (const action of ['CRIAR_OP', 'START_OPERACAO', 'EXPEDICAO_PESAGEM', 'EMBARQUE_NOTA_FISCAL', 'EMBARQUE_REALIZADO', 'EMBARQUE_CONCLUIDO']) {
       check(audit.some((a: any) => a.action === action), `${tag}: auditoria sem registro ${action}`);
     }
     store.logoutMachineOperator();

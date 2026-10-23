@@ -25,6 +25,7 @@ import { FinishStepModal } from './FinishStepModal';
 import { OpProductThumbnail } from '../common/OpProductThumbnail';
 import { FullLayoutModal } from '../pcp/FullLayoutModal';
 import { ExpeditionCockpit } from './ExpeditionCockpit';
+import { ShippingCockpit } from './ShippingCockpit';
 import { MachineStationLogin } from './MachineStationLogin';
 import { CorteSoldaQueue } from './CorteSoldaQueue';
 import { ProductionOrder, MachineSession } from '../../types/mes';
@@ -169,6 +170,10 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
       : { label: 'NO PRAZO', dot: 'bg-emerald-500', card: 'border-emerald-500/40 bg-emerald-50', badge: 'bg-emerald-600 text-white' };
 
   const isExpedicaoSector = effectiveSector === 'EXPEDICAO' || (!displayMachines.length && activeUser?.sectors?.includes('EXPEDICAO'));
+
+  if (effectiveSector === 'EMBARQUE') {
+    return <ShippingCockpit onSelectOp={onSelectOp} />;
+  }
 
   if (isExpedicaoSector) {
     return <ExpeditionCockpit onSelectOp={onSelectOp} />;
