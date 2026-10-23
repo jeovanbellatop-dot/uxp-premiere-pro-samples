@@ -362,6 +362,39 @@ async function main() {
       }
       order = store.getOrders().find((o: any) => o.id === 'op_' + opNumber);
       check(order.steps[i].status === 'PRODUZINDO', `${stag}: status após início ${order.steps[i].status}`);
+
+      // Fila: iniciada, some de todas as filas; na próxima máquina aparece sem poder iniciar.
+      {
+        const keepUser = operatorId!;
+        const keepMachine = machineId;
+        const allMachines = store.getAllFactoryMachines().map((m: any) => m.id);
+        const queuesWithOp = (stepId: string) =>
+          allMachines.filter((m: string) =>
+            store.getMachineQueue(m).some((q: any) => q.step.id === stepId) ||
+            store.getAvailableCorteSoldaOps(m).some((q: any) => q.step.id === stepId)
+          );
+        store.logoutMachineOperator();
+        const stillListed = queuesWithOp(step.id);
+        check(stillListed.length === 0, `${stag}: OP iniciada continua na fila de ${stillListed.join(', ')}`);
+        const next = order.steps[i + 1];
+        if (next && next.processTypeId !== 'proc_expedicao') {
+          const nextMachines = next.processTypeId === 'proc_solda' ? allowedCorte(s) : [next.assignedMachineId];
+          for (const nm of nextMachines) {
+            store.logoutMachineOperator();
+            const item =
+              store.getMachineQueue(nm).find((q: any) => q.step.id === next.id) ||
+              store.getAvailableCorteSoldaOps(nm).find((q: any) => q.step.id === next.id);
+            if (!check(item, `${stag}: próxima etapa (${next.processName}) não aparece na fila de ${nm} enquanto a OP roda aqui`)) continue;
+            check(!item.ready && /Em produção em/.test(item.waitingOn || ''), `${stag}: na fila de ${nm} a OP deveria aparecer "Em produção em ${step.processName}", veio ready=${item.ready} "${item.waitingOn}"`);
+            if (next.processTypeId === 'proc_solda') {
+              login('u_toninho', nm);
+              check(!store.claimOperation(next.id, nm, 'u_toninho', 'Toninho').success, `${stag}: ${nm} conseguiu pegar a OP antes da etapa anterior terminar`);
+            }
+          }
+        }
+        if (keepMachine && step.processTypeId !== 'proc_expedicao') login(keepUser, keepMachine);
+        else { store.logoutMachineOperator(); store.login('carlos', PASSWORD); }
+      }
       check(order.steps[i].activeOperatorId === operatorId!, `${stag}: operador registrado ${order.steps[i].activeOperatorId}, esperado ${operatorId!}`);
       if (machineId && step.processTypeId !== 'proc_expedicao') {
         const mach = store.getAllFactoryMachines().find((m: any) => m.id === machineId);

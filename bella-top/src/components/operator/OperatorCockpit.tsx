@@ -112,7 +112,10 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
   const [showDetails, setShowDetails] = useState(false);
 
   const machineQueue = activeMachine ? getMachineQueue(activeMachine.id) : [];
-  const selectedQueueItem = machineQueue.find((item) => item.step.id === selectedQueueStepId);
+  // Duas filas: o que já pode começar aqui e o que ainda está em etapas anteriores.
+  const readyQueue = machineQueue.filter((item) => item.ready);
+  const upcomingQueue = machineQueue.filter((item) => !item.ready);
+  const selectedQueueItem = readyQueue.find((item) => item.step.id === selectedQueueStepId);
   const currentOp = orders.find((order) => order.id === activeMachine?.currentOpId);
   // A etapa so conta como "em producao nesta maquina" enquanto nao estiver finalizada.
   // Sem esta checagem, um cadastro de maquina desatualizado (currentOpId antigo) fazia a
@@ -200,6 +203,8 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
     if (!targetStepId) return;
     try {
       startOperation(targetStepId, activeMachine.id, currentActorId);
+      // Iniciada: sai da fila (para todos) e vai para a aba "Em produção".
+      setSelectedQueueStepId(null);
       setOperationSuccess('Operação iniciada com sucesso!');
       setActiveTab('production');
       setTimeout(() => setOperationSuccess(null), 4000);
@@ -389,8 +394,8 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
             >
               <ListOrdered className="w-4 h-4" />
               {isCorteSoldaSector ? 'Fila C&S' : 'Fila'}
-              {machineQueue.length > 0 && (
-                <span className="rounded-full bg-[#E30A78] text-white px-1.5 text-[10px] leading-4">{machineQueue.length}</span>
+              {readyQueue.length > 0 && (
+                <span className="rounded-full bg-[#E30A78] text-white px-1.5 text-[10px] leading-4">{readyQueue.length}</span>
               )}
             </button>
           </div>
@@ -531,12 +536,12 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
                     {isCorteSoldaSector ? 'Escolha a próxima OP na fila abaixo.' : 'Abra a fila para selecionar o próximo trabalho.'}
                   </p>
                 </div>
-                {!isCorteSoldaSector && machineQueue.length > 0 && (
+                {!isCorteSoldaSector && readyQueue.length > 0 && (
                   <button
                     onClick={() => setActiveTab('queue')}
                     className="shrink-0 text-xs font-black text-[#E30A78] hover:text-[#B30A5C] cursor-pointer"
                   >
-                    Ver fila ({machineQueue.length}) →
+                    Ver fila ({readyQueue.length}) →
                   </button>
                 )}
               </div>
@@ -619,53 +624,89 @@ export const OperatorCockpit: React.FC<OperatorCockpitProps> = ({
                     <p className="text-sm text-[#8A7D77] mt-1">Quando uma ordem for liberada, ela aparecerá aqui.</p>
                   </div>
                 ) : (
-                  <div className="mt-5 space-y-3">
-                    {machineQueue.map((item, index) => {
-                      const style = priorityStyle(item.order.priority);
-                      return (
-                        <article
-                          key={item.step.id}
-                          className={'rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ' + style.card}
-                        >
-                          <div className="flex items-center gap-4 flex-1">
-                            <OpProductThumbnail
-                              thumbnail={item.order.productThumbnail}
-                              layoutImage={item.order.layoutPreviewImage || item.order.layoutImage}
-                              opNumber={item.order.opNumber}
-                              size="md"
-                              onClick={() => onSelectOp(item.order.id)}
-                            />
-                            <button onClick={() => onSelectOp(item.order.id)} className="text-left flex-1 cursor-pointer">
-                              <div className="flex items-center gap-2">
-                                <span className={'w-2.5 h-2.5 rounded-full ' + style.dot} />
-                                <span className="text-xs font-black">{style.label}</span>
-                                <span className="text-xs text-[#8A7D77]">#{index + 1} na fila</span>
-                              </div>
-                              <h3 className="text-lg font-black mt-1 text-[#1C1418]">OP #{item.order.opNumber}</h3>
-                              <p className="text-sm text-[#3A3034] font-medium">{item.order.productName}</p>
-                              <div className="flex flex-wrap items-center gap-2 mt-0.5">
-                                <span className="text-xs text-[#8A7D77]">
-                                  {item.step.receivedQuantity.toLocaleString('pt-BR')} {item.step.unit} · Prazo{' '}
-                                  {new Date(item.order.deadline).toLocaleDateString('pt-BR')}
-                                </span>
-                                {(item.step.hasCord ||
-                                  (item.step.processTypeId === 'proc_solda' && item.order.hasDrawstring)) && (
-                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-300 font-extrabold">
-                                    Cordão: SIM
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => setSelectedQueueStepId(item.step.id)}
-                            className="w-full sm:w-auto min-h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-5 py-3 text-sm font-black text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-                          >
-                            SELECIONAR <ChevronRight className="w-4 h-4" />
-                          </button>
-                        </article>
-                      );
-                    })}
+                  <div className="mt-5 space-y-6">
+                    <div>
+                      <h3 className="text-xs font-black tracking-widest text-emerald-700 uppercase">
+                        Prontas para iniciar ({readyQueue.length})
+                      </h3>
+                      {readyQueue.length === 0 ? (
+                        <p className="text-sm text-[#8A7D77] mt-2">Nenhuma OP pronta para esta máquina agora.</p>
+                      ) : (
+                        <div className="mt-3 space-y-3">
+                          {readyQueue.map((item, index) => {
+                            const style = priorityStyle(item.order.priority);
+                            return (
+                              <article
+                                key={item.step.id}
+                                className={'rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ' + style.card}
+                              >
+                                <div className="flex items-center gap-4 flex-1">
+                                  <OpProductThumbnail
+                                    thumbnail={item.order.productThumbnail}
+                                    layoutImage={item.order.layoutPreviewImage || item.order.layoutImage}
+                                    opNumber={item.order.opNumber}
+                                    size="md"
+                                    onClick={() => onSelectOp(item.order.id)}
+                                  />
+                                  <button onClick={() => onSelectOp(item.order.id)} className="text-left flex-1 cursor-pointer">
+                                    <div className="flex items-center gap-2">
+                                      <span className={'w-2.5 h-2.5 rounded-full ' + style.dot} />
+                                      <span className="text-xs font-black">{style.label}</span>
+                                      <span className="text-xs text-[#8A7D77]">#{index + 1} na fila</span>
+                                    </div>
+                                    <h3 className="text-lg font-black mt-1 text-[#1C1418]">OP #{item.order.opNumber}</h3>
+                                    <p className="text-sm text-[#3A3034] font-medium">{item.order.productName}</p>
+                                    <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                      <span className="text-xs text-[#8A7D77]">
+                                        {item.step.receivedQuantity.toLocaleString('pt-BR')} {item.step.unit} · Prazo{' '}
+                                        {new Date(item.order.deadline).toLocaleDateString('pt-BR')}
+                                      </span>
+                                      {(item.step.hasCord ||
+                                        (item.step.processTypeId === 'proc_solda' && item.order.hasDrawstring)) && (
+                                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-300 font-extrabold">
+                                          Cordão: SIM
+                                        </span>
+                                      )}
+                                    </div>
+                                  </button>
+                                </div>
+                                <button
+                                  onClick={() => setSelectedQueueStepId(item.step.id)}
+                                  className="w-full sm:w-auto min-h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-5 py-3 text-sm font-black text-white flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                                >
+                                  SELECIONAR <ChevronRight className="w-4 h-4" />
+                                </button>
+                              </article>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {upcomingQueue.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-black tracking-widest text-[#8A5A00] uppercase">
+                          Em produção em etapas anteriores ({upcomingQueue.length})
+                        </h3>
+                        <p className="text-xs text-[#8A7D77] mt-1">Ainda não podem ser iniciadas aqui. Liberam quando a etapa anterior terminar.</p>
+                        <div className="mt-3 space-y-3">
+                          {upcomingQueue.map((item) => (
+                            <article
+                              key={item.step.id}
+                              className="rounded-2xl border border-[#E5DAD3] bg-[#FAF5F1] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-90"
+                            >
+                              <button onClick={() => onSelectOp(item.order.id)} className="text-left flex-1 cursor-pointer">
+                                <h3 className="text-base font-black text-[#1C1418]">OP #{item.order.opNumber}</h3>
+                                <p className="text-sm text-[#3A3034]">{item.order.productName}</p>
+                              </button>
+                              <span className="rounded-xl bg-[#FFF4DB] border border-[#E8B54A] px-3 py-2 text-xs font-black text-[#5C3800] text-center">
+                                {item.waitingOn}
+                              </span>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </section>

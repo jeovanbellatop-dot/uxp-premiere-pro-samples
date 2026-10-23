@@ -1863,6 +1863,32 @@ class MesStore {
   // ==========================================
   // FILA DE CORTE E SOLDA (COMPARTILHADA NAS 3 MÁQUINAS ATIVAS)
   // ==========================================
+  /**
+   * Situação de uma etapa na fila: pronta para iniciar, ou ainda presa numa etapa
+   * anterior (com o texto de onde a OP está agora, para o operador saber).
+   */
+  public getQueueStepState(order: ProductionOrder, step: OperationStep): { ready: boolean; waitingOn?: string } {
+    const pending = order.steps
+      .filter((s) => s.sequenceIndex < step.sequenceIndex)
+      .sort((a, b) => a.sequenceIndex - b.sequenceIndex)
+      .find((s) => s.status !== 'FINALIZADA');
+    if (!pending) {
+      const ready = step.status === 'PRONTA' || step.status === 'NA_FILA' || (step.status === 'AGUARDANDO_ANTERIOR' && step.receivedQuantity > 0);
+      return ready ? { ready: true } : { ready: false, waitingOn: 'Aguardando liberação do PCP' };
+    }
+    const machineName = pending.assignedMachineName || '';
+    const where = pending.processName + (machineName && machineName !== pending.processName ? ` (${machineName})` : '');
+    const label =
+      pending.status === 'PRODUZINDO'
+        ? `Em produção em ${where}`
+        : pending.status === 'PAUSADA'
+        ? `Pausada em ${where}`
+        : pending.status === 'PRONTA' || pending.status === 'NA_FILA'
+        ? `Na fila de ${where}`
+        : `Aguardando ${where}`;
+    return { ready: false, waitingOn: label };
+  }
+
   /** OP liberada pelo PCP: só essas aparecem para a fábrica. */
   public isReleasedForFactory(order: ProductionOrder): boolean {
     const status = order.status as string;
@@ -1918,6 +1944,8 @@ class MesStore {
     order: ProductionOrder;
     step: OperationStep;
     recommendation: MachineOpRecommendation;
+    ready: boolean;
+    waitingOn?: string;
   }> {
     if (!this.canAccessMachine(machineId)) {
       return [];
@@ -1927,6 +1955,8 @@ class MesStore {
       order: ProductionOrder;
       step: OperationStep;
       recommendation: MachineOpRecommendation;
+      ready: boolean;
+      waitingOn?: string;
     }> = [];
 
     this.orders.forEach((order) => {
@@ -1937,6 +1967,8 @@ class MesStore {
       order.steps.forEach((step) => {
         if (step.processTypeId !== 'proc_solda') return;
         if (step.status === 'FINALIZADA') return;
+        // Iniciada: sai da fila de todas as máquinas e fica só na aba "Em produção" de quem pegou.
+        if (step.status === 'PRODUZINDO' || step.status === 'PAUSADA') return;
 
         // Se já foi reivindicada por OUTRA máquina, desaparece imediatamente desta máquina
         if (step.claimedByMachineId && step.claimedByMachineId !== machineId) {
@@ -1950,7 +1982,7 @@ class MesStore {
           return;
         }
 
-        result.push({ order, step, recommendation });
+        result.push({ order, step, recommendation, ...this.getQueueStepState(order, step) });
       });
     });
 
@@ -2012,6 +2044,12 @@ class MesStore {
     // Regra atômica de concorrência: se outra máquina já pegou
     if (step.claimedByMachineId && step.claimedByMachineId !== machineId) {
       return { success: false, error: 'Esta OP acabou de ser selecionada por outra máquina.' };
+    }
+
+    // Só pega a OP quando for a vez dela: etapa anterior concluída.
+    const queueState = this.getQueueStepState(order, step);
+    if (!queueState.ready) {
+      return { success: false, error: `A OP ${order.opNumber} ainda não pode ser iniciada aqui: ${queueState.waitingOn}.` };
     }
 
     // Regra de bloqueio técnico
@@ -4225,25 +4263,25 @@ class MesStore {
   public getMachineQueue(machineId: string): Array<{
     order: ProductionOrder;
     step: OperationStep;
+    ready: boolean;
+    waitingOn?: string;
   }> {
     if (!this.canAccessMachine(machineId)) {
       return [];
     }
 
-    const queue: Array<{ order: ProductionOrder; step: OperationStep }> = [];
+    const queue: Array<{ order: ProductionOrder; step: OperationStep; ready: boolean; waitingOn?: string }> = [];
     this.orders.forEach((o) => {
       // OP ainda com o PCP não chega na fábrica.
       if (!this.isReleasedForFactory(o)) return;
       o.steps.forEach((step) => {
+        // Só o que ainda não começou nesta máquina. Iniciada (ou pausada) sai da fila
+        // e fica na aba "Em produção" da máquina.
         if (
           step.assignedMachineId === machineId &&
-          (step.status === 'PRODUZINDO' ||
-            step.status === 'PAUSADA' ||
-            step.status === 'PRONTA' ||
-            step.status === 'NA_FILA' ||
-            step.status === 'AGUARDANDO_ANTERIOR')
+          (step.status === 'PRONTA' || step.status === 'NA_FILA' || step.status === 'AGUARDANDO_ANTERIOR')
         ) {
-          queue.push({ order: o, step });
+          queue.push({ order: o, step, ...this.getQueueStepState(o, step) });
         }
       });
     });
@@ -4256,9 +4294,8 @@ class MesStore {
     };
 
     queue.sort((a, b) => {
-      // Producing first
-      if (a.step.status === 'PRODUZINDO' && b.step.status !== 'PRODUZINDO') return -1;
-      if (b.step.status === 'PRODUZINDO' && a.step.status !== 'PRODUZINDO') return 1;
+      // Prontas para iniciar primeiro
+      if (a.ready !== b.ready) return a.ready ? -1 : 1;
 
       // Higher priority first
       const pDiff = priorityWeight[b.order.priority] - priorityWeight[a.order.priority];

@@ -161,6 +161,10 @@ export const CorteSoldaQueue: React.FC<CorteSoldaQueueProps> = ({
     });
   }, [availableOps, parsedDimension, selectedColor, selectedModel, searchQuery]);
 
+  // Duas filas: as que já podem começar e as que ainda estão em etapas anteriores.
+  const readyOps = filteredOps.filter((op) => op.ready);
+  const waitingOps = filteredOps.filter((op) => !op.ready);
+
   const handleClaimOp = (stepId: string, opNumber: string) => {
     setFeedbackError(null);
     setFeedbackSuccess(null);
@@ -234,7 +238,7 @@ export const CorteSoldaQueue: React.FC<CorteSoldaQueueProps> = ({
           </p>
         </div>
         <div className="text-right shrink-0">
-          <span className="block text-2xl font-black text-[#E30A78] leading-none">{availableOps.length}</span>
+          <span className="block text-2xl font-black text-[#E30A78] leading-none">{availableOps.filter((op) => op.ready).length}</span>
           <span className="block text-[10px] text-[#8A7D77] mt-0.5">no setor</span>
         </div>
       </div>
@@ -386,7 +390,12 @@ export const CorteSoldaQueue: React.FC<CorteSoldaQueueProps> = ({
             )}
           </div>
         ) : (
-          filteredOps.map(({ order, step, recommendation }) => {
+          <>
+          <h3 className="text-xs font-black tracking-widest text-emerald-700 uppercase">Prontas para iniciar ({readyOps.length})</h3>
+          {readyOps.length === 0 && (
+            <p className="text-sm text-[#8A7D77]">Nenhuma OP pronta para o Corte e Solda agora.</p>
+          )}
+          {readyOps.map(({ order, step, recommendation }) => {
             const isBlocked = recommendation.isBlocked;
             const isRecommendedForThisMachine = recommendation.isRecommended;
             const isClaimedByThisMachine = step.claimedByMachineId === machine.id;
@@ -544,7 +553,31 @@ export const CorteSoldaQueue: React.FC<CorteSoldaQueueProps> = ({
                 </div>
               </div>
             );
-          })
+          })}
+
+          {waitingOps.length > 0 && (
+            <div className="pt-3 space-y-3">
+              <h3 className="text-xs font-black tracking-widest text-[#8A5A00] uppercase">
+                Em produção em etapas anteriores ({waitingOps.length})
+              </h3>
+              <p className="text-xs text-[#8A7D77]">Ainda não podem ser iniciadas aqui. Liberam quando a etapa anterior terminar.</p>
+              {waitingOps.map(({ order, step, waitingOn }) => (
+                <div
+                  key={step.id}
+                  className="rounded-2xl border border-[#E5DAD3] bg-[#FAF5F1] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <button onClick={() => onSelectOp(order.id)} className="text-left flex-1 cursor-pointer">
+                    <h3 className="text-base font-black text-[#1C1418]">OP #{order.opNumber}</h3>
+                    <p className="text-sm text-[#3A3034]">{order.productName} · {order.client}</p>
+                  </button>
+                  <span className="rounded-xl bg-[#FFF4DB] border border-[#E8B54A] px-3 py-2 text-xs font-black text-[#5C3800] text-center">
+                    {waitingOn}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          </>
         )}
       </div>
 
