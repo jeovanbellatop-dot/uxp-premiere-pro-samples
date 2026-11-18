@@ -3,6 +3,7 @@ import { getOpenAIClient, getOpenAIModel } from "./openaiClient";
 import { BELLA_TOP_PRODUCTION_MEMORY } from "./memory";
 import { RoutingEngine, SuggestedStep } from "./routingEngine";
 import { ImageService, ProcessedImage } from "./imageService";
+import { identifyProductKey } from "../src/data/initialData";
 import { ServerAuditService } from "./auditService";
 
 export interface ExtractedField<T = any> {
@@ -428,7 +429,12 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
     rawText: string,
     docs: Array<{ base64: string; mimeType: string; fileName: string; type?: string }>
   ): StructuredOpOutput {
-    const clean = rawText || '';
+    // O texto do PDF costuma chegar numa linha só: quebra antes de cada rótulo conhecido,
+    // senão "Cliente: X Produto: Y" vira cliente = "X Produto: Y".
+    const clean = (rawText || '').replace(
+      /\s+(OP|Pedido|Cliente|Produto|Item|Descri[cç][aã]o|Quantidade|QTD|Gramatura|Medidas?|Dimens[oõ]es|Formato|Tamanho|Impress[aã]o|Cor|Prazo|Entrega|Observa[cç][oõ]es|Acabamento)\s*:/gi,
+      '\n$1:'
+    );
 
     // Regex abrangentes para formatos de OP da Bella Top
     const opMatch =
@@ -457,7 +463,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
       clean.match(/(\d{2,3})\s*(?:g\/m²|gr\/m²|g|gr)\b/i);
 
     const corMatch =
-      clean.match(/(?:Cor|COR|Cor\s+do\s+TNT|Cor\s+do\s+Tecido|Cor\s+Material|Cor\s+do\s+Material)\s*[:#.]?\s*([^\n\r,;|]{3,30})/i);
+      clean.match(/\b(?:Cor\s+do\s+TNT|Cor\s+do\s+Tecido|Cor\s+do\s+Material|Cor\s+Material|Cor)[ \t]*[:#][ \t]*([^\n\r,;|]{3,30})/i);
 
     const dimMatch =
       clean.match(/(?:Dimens[oõ]es|Medidas|Medida|Formato|Tamanho)\s*[:#.]?\s*(\d{2,4})\s*(?:x|X|\*)\s*(\d{2,4})(?:\s*(?:\+|\/)\s*(\d{1,4}))?/i) ||
@@ -501,7 +507,8 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
     else if (/estamp|transfer/i.test(clean)) printMethod = 'ESTAMPARIA';
     else if (/sem\s+impress[aã]o|liso|sem\s+personaliza[cç][aã]o/i.test(clean)) printMethod = 'SEM_IMPRESSAO';
 
-    const colorsMatch = clean.match(/(\d+)\s*(?:cores|cor|x\s*\d+)/i);
+    // Só "N cor(es)": "300 x 400" é medida, não número de cores.
+    const colorsMatch = clean.match(/(\d{1,2})\s*cor(?:es)?\b/i);
     const printingColors = colorsMatch ? parseInt(colorsMatch[1], 10) : (printMethod === 'SEM_IMPRESSAO' ? 0 : 1);
 
     const deadlineMatch = clean.match(/(?:Prazo|Entrega|Data\s+de\s+Entrega|Data\s+Entrega|Vencimento)\s*[:#.]?\s*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4})/i);
@@ -509,6 +516,8 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
     const opNumber = opMatch ? opMatch[1].trim() : 'Não identificado';
     const customer = clienteMatch ? clienteMatch[1].trim() : 'Não identificado';
     const productName = produtoMatch ? produtoMatch[1].trim() : (is8x12Match ? 'Saco TNT 8x12' : 'Não identificado');
+    // Tipo de produto pelas mesmas regras do roteiro; ambíguo continua "não identificado" para o PCP.
+    const productType = identifyProductKey({ productName, handleType: isAlcaVazada ? 'VAZADA' : isAlcaFita ? 'FITA' : undefined });
     const gsm = gramaturaMatch ? parseInt(gramaturaMatch[1], 10) : 0;
     const width = is8x12Match ? 80 : (dimMatch ? parseInt(dimMatch[1], 10) : 0);
     const height = is8x12Match ? 120 : (dimMatch ? parseInt(dimMatch[2], 10) : 0);
@@ -582,7 +591,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
         has_window: hasVisor,
         has_cord: hasCordao,
         cord_mode: cordMode as any,
-        product_type: 'NAO_IDENTIFICADO',
+        product_type: productType,
         requires_sewing: false,
         outsourced: false,
         printing_method: printMethod,
@@ -611,7 +620,7 @@ Retorne ESTRITAMENTE em formato JSON com o seguinte schema:
         has_window: { value: hasVisor, confidence: 0.95 },
         has_cord: { value: hasCordao, confidence: 0.95 },
         cord_mode: { value: cordMode, confidence: cordMode === 'NAO_IDENTIFICADO' ? 0.0 : 0.9 },
-        product_type: { value: 'NAO_IDENTIFICADO', confidence: 0.0 },
+        product_type: { value: productType, confidence: productType === 'NAO_IDENTIFICADO' ? 0.0 : 0.85 },
         printing_method: { value: printMethod, confidence: printMethod !== 'NAO_IDENTIFICADO' ? 0.92 : 0.0 },
         printing_colors: { value: printingColors, confidence: colorsMatch ? 0.90 : 0.70 },
         deadline: { value: deadlineMatch ? new Date().toISOString() : new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(), confidence: deadlineMatch ? 0.90 : 0.70 },

@@ -18,7 +18,7 @@ import { AuditLogsView } from './components/audit/AuditLogsView';
 import { AlertsDrawer } from './components/alerts/AlertsDrawer';
 import { MaintenanceView } from './components/maintenance/MaintenanceView';
 import { StorageAdminPanel, StorageGlobalIndicator } from './components/admin/StorageAdminPanel';
-import { getUserMachineSummary } from './utils/userMachines';
+import { getUserMachineSummary, isPrivilegedUser } from './utils/userMachines';
 import { SECTOR_DEFINITIONS } from './data/initialData';
 import { SystemSectorCode } from './types/mes';
 import {
@@ -140,7 +140,8 @@ export default function App() {
   const effectiveSector = selectedSector || userSectors[0] || 'REFILE';
 
   const isOperatorBound = Boolean(activeOperatorMachineId && !isAdmin);
-  const isOperatorProfile = isOperatorBound || activeUser?.role === 'OPERATOR' || !isAdmin;
+  // Escritório (Administração, PCP, gerência) vê o painel; os demais ficam no posto de trabalho.
+  const isOperatorProfile = isOperatorBound || activeUser?.role === 'OPERATOR' || !isPrivilegedUser(activeUser);
 
   // Ajusta e trava a aba e máquina dependendo do papel e da sessão vinculada
   useEffect(() => {
@@ -312,16 +313,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF5F1] text-[#1C1418] font-sans flex flex-col md:flex-row">
+    <div className="min-h-screen bg-canvas text-ink font-sans flex flex-col md:flex-row">
       {/* Barra Superior Mobile */}
-      <div className="md:hidden bg-[#1C1418] text-white p-3 flex items-center justify-between border-b border-[#2E2428] sticky top-0 z-30">
+      <div className="md:hidden bg-ink text-white p-3 flex items-center justify-between border-b border-shell-line sticky top-0 z-30">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-amber-500 text-white font-black text-xs flex items-center justify-center">
+          <div className="w-6 h-6 rounded bg-brand text-white font-bold text-xs flex items-center justify-center">
             B
           </div>
           <div>
-            <span className="font-bold text-xs tracking-wide text-[#F5C6DC]">BELLA TOP</span>
-            <span className="text-[10px] text-amber-400 block -mt-1 font-mono">
+            <span className="font-bold text-xs tracking-wide text-brand-soft">BELLA TOP</span>
+            <span className="text-[10px] text-shell-text block -mt-1 font-mono">
               {effectiveSector}
             </span>
           </div>
@@ -329,19 +330,19 @@ export default function App() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsAlertsOpen(true)}
-            className="p-1.5 rounded-lg bg-[#2E2428] text-amber-400 relative"
+            className="p-1.5 rounded-lg bg-shell-line text-shell-text relative"
             aria-label="Alertas"
           >
             <Bell size={16} />
             {unreadAlertsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-700 text-white text-[9px] font-bold flex items-center justify-center">
                 {unreadAlertsCount}
               </span>
             )}
           </button>
           <button
             onClick={logout}
-            className="p-1.5 rounded-lg bg-[#2E2428] text-rose-400 hover:text-white"
+            className="p-1.5 rounded-lg bg-shell-line text-rose-700 hover:text-white"
             title="Sair do Sistema"
             aria-label="Sair"
           >
@@ -349,7 +350,7 @@ export default function App() {
           </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 rounded-lg bg-[#2E2428] text-[#D8D0CC]"
+            className="p-1.5 rounded-lg bg-shell-line text-shell-text"
             aria-label="Abrir Menu"
           >
             {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -363,26 +364,26 @@ export default function App() {
           collapsed ? 'w-20' : 'w-72'
         } ${
           mobileMenuOpen ? 'fixed inset-0 z-40 flex' : 'hidden md:flex'
-        } sticky top-0 h-screen shrink-0 border-r border-[#2E2428] bg-[#1C1418] transition-all duration-200 flex-col ${
+        } sticky top-0 h-screen shrink-0 border-r border-shell-line bg-ink transition-all duration-200 flex-col ${
           isOperatorProfile ? 'justify-start' : 'justify-between'
         } overflow-y-auto`}
       >
         <div>
           {/* Topo do Sidebar */}
-          <div className="flex items-center justify-between px-4 py-4 border-b border-[#2E2428]">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-shell-line">
             {!collapsed ? (
               <div>
-                <p className="text-[11px] tracking-[.22em] text-[#F5C6DC] font-bold">BELLA TOP</p>
-                <p className="text-xs text-[#A99C97] mt-0.5 font-medium">Controle de Produção</p>
+                <p className="text-[11px] tracking-[.22em] text-brand-soft font-bold">BELLA TOP</p>
+                <p className="text-xs text-faint mt-0.5 font-medium">Controle de Produção</p>
               </div>
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center mx-auto text-sm">
+              <div className="w-8 h-8 rounded-lg bg-brand/15 text-brand font-bold flex items-center justify-center mx-auto text-sm">
                 BT
               </div>
             )}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 rounded-lg text-[#A99C97] hover:text-white hover:bg-[#2E2428] hidden md:block cursor-pointer"
+              className="p-2 rounded-lg text-faint hover:text-white hover:bg-shell-line hidden md:block cursor-pointer"
               aria-label="Recolher menu"
             >
               {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -390,7 +391,7 @@ export default function App() {
             {mobileMenuOpen && (
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-lg text-[#A99C97] hover:text-white hover:bg-[#2E2428] md:hidden cursor-pointer"
+                className="p-2 rounded-lg text-faint hover:text-white hover:bg-shell-line md:hidden cursor-pointer"
                 aria-label="Fechar menu"
               >
                 <X size={18} />
@@ -400,26 +401,26 @@ export default function App() {
 
           {/* Seletor de Setor para Administrador Geral apenas */}
           {!collapsed && isAdmin && !isOperatorBound && (
-            <div className="px-4 py-3 bg-[#160E12] border-b border-[#2E2428] space-y-2">
+            <div className="px-4 py-3 bg-shell-deep border-b border-shell-line space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#A99C97] uppercase tracking-wider font-bold">
+                <span className="text-[10px] text-faint uppercase tracking-wider font-bold">
                   Modo de Visualização
                 </span>
                 <button
                   onClick={() => setIsSectorModalOpen(true)}
-                  className="text-[10px] text-amber-400 hover:text-amber-300 font-medium cursor-pointer"
+                  className="text-[10px] text-brand-soft hover:text-white font-medium cursor-pointer"
                 >
                   Trocar Setor
                 </button>
               </div>
 
               <div className="flex flex-wrap gap-1.5 pt-0.5">
-                <div className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-indigo-950/50 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
+                <div className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-shell-raised border border-white/10 text-white text-xs font-semibold">
                   <span className="flex items-center gap-1.5">
-                    <Shield size={13} className="text-indigo-400" />
+                    <Shield size={13} className="text-brand-soft" />
                     Acesso Total Admin
                   </span>
-                  <span className="text-[10px] bg-indigo-500/20 px-1.5 py-0.5 rounded text-indigo-200 uppercase">
+                  <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-shell-text uppercase">
                     {effectiveSector}
                   </span>
                 </div>
@@ -443,8 +444,8 @@ export default function App() {
                       title={collapsed ? item.label : undefined}
                       className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors cursor-pointer ${
                         selected
-                          ? 'bg-amber-500 text-white font-bold shadow-lg shadow-amber-950/30'
-                          : 'text-[#D8D0CC] hover:text-white hover:bg-[#2E2428]'
+                          ? 'bg-brand text-white font-semibold shadow-sm'
+                          : 'text-shell-text hover:text-white hover:bg-shell-line'
                       }`}
                     >
                       <Icon size={18} className="shrink-0" />
@@ -455,8 +456,8 @@ export default function App() {
                             <span
                               className={`min-w-6 rounded-full px-1.5 py-0.5 text-[10px] text-center ${
                                 selected
-                                  ? 'bg-[#FAF5F1] text-[#1C1418] font-bold'
-                                  : 'bg-[#2E2428] text-[#E6DEDA]'
+                                  ? 'bg-canvas text-ink font-bold'
+                                  : 'bg-shell-line text-line'
                               }`}
                             >
                               {count}
@@ -473,7 +474,7 @@ export default function App() {
                 {allowedGroups.map((group) => (
                   <section key={group.label}>
                     {!collapsed && (
-                      <h2 className="px-3 mb-2 text-[10px] font-bold tracking-[.18em] text-[#A99C97]">
+                      <h2 className="px-3 mb-2 text-[10px] font-bold tracking-[.18em] text-faint">
                         {group.label}
                       </h2>
                     )}
@@ -490,8 +491,8 @@ export default function App() {
                             title={collapsed ? item.label : undefined}
                             className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors cursor-pointer ${
                               selected
-                                ? 'bg-amber-500 text-white font-bold shadow-lg shadow-amber-950/30'
-                                : 'text-[#D8D0CC] hover:text-white hover:bg-[#2E2428]'
+                                ? 'bg-brand text-white font-semibold shadow-sm'
+                                : 'text-shell-text hover:text-white hover:bg-shell-line'
                             }`}
                           >
                             <Icon size={18} className="shrink-0" />
@@ -502,10 +503,10 @@ export default function App() {
                                   <span
                                     className={`min-w-6 rounded-full px-1.5 py-0.5 text-[10px] text-center ${
                                       selected
-                                        ? 'bg-[#FAF5F1] text-[#1C1418] font-bold'
+                                        ? 'bg-canvas text-ink font-bold'
                                         : item.id === 'queue'
-                                        ? 'bg-rose-950 text-rose-300'
-                                        : 'bg-[#2E2428] text-[#E6DEDA]'
+                                        ? 'bg-rose-50 text-rose-700'
+                                        : 'bg-shell-line text-line'
                                     }`}
                                   >
                                     {count}
@@ -526,16 +527,16 @@ export default function App() {
 
         {/* Rodapé do Sidebar com Perfil & Logout: todos os perfis precisam do botão Sair */}
         {Boolean(activeUser) && (
-          <div className="p-3 border-t border-[#2E2428] bg-[#160E12]/90 space-y-2">
+          <div className="p-3 border-t border-shell-line bg-shell-deep/90 space-y-2">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAlertsOpen(true)}
                 title="Alertas Operacionais"
-                className="p-2 rounded-xl bg-[#2E2428] hover:bg-[#3D3035] text-[#D8D0CC] hover:text-white transition-colors relative flex items-center justify-center shrink-0 cursor-pointer"
+                className="p-2 rounded-xl bg-shell-line hover:bg-shell-line text-shell-text hover:text-white transition-colors relative flex items-center justify-center shrink-0 cursor-pointer"
               >
                 <Bell size={17} />
                 {unreadAlertsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center border border-[#160E12]">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-700 text-white text-[9px] font-bold flex items-center justify-center border border-shell-deep">
                     {unreadAlertsCount}
                   </span>
                 )}
@@ -543,11 +544,11 @@ export default function App() {
 
               {!collapsed ? (
                 <>
-                  <div className="flex-1 min-w-0 px-2 py-1 bg-[#251A20] rounded-xl border border-[#3E3036]">
+                  <div className="flex-1 min-w-0 px-2 py-1 bg-shell-raised rounded-xl border border-shell-line">
                     <p className="text-xs font-bold text-white truncate leading-tight">
                       {activeUser.name}
                     </p>
-                    <p className="text-[10px] text-amber-400/90 font-mono uppercase truncate mt-0.5">
+                    <p className="text-[10px] text-shell-text/80 font-mono uppercase truncate mt-0.5">
                       {activeUser.role} · {effectiveSector}
                     </p>
                   </div>
@@ -555,7 +556,7 @@ export default function App() {
                     id="btn_sidebar_logout"
                     onClick={logout}
                     title="Sair / Desconectar"
-                    className="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 text-rose-400 hover:text-rose-200 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                    className="p-2 rounded-xl bg-rose-50/40 hover:bg-rose-100/60 border border-rose-200/40 text-rose-700 hover:text-rose-200 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                   >
                     <LogOut size={16} />
                   </button>
@@ -565,7 +566,7 @@ export default function App() {
                   id="btn_sidebar_logout_collapsed"
                   onClick={logout}
                   title="Sair / Desconectar"
-                  className="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 text-rose-400 hover:text-rose-200 transition-colors flex items-center justify-center mx-auto cursor-pointer"
+                  className="p-2 rounded-xl bg-rose-50/40 hover:bg-rose-100/60 border border-rose-200/40 text-rose-700 hover:text-rose-200 transition-colors flex items-center justify-center mx-auto cursor-pointer"
                 >
                   <LogOut size={16} />
                 </button>
@@ -586,27 +587,27 @@ export default function App() {
         ) : (
           <>
             {/* Barra de Indicadores Globais do Sistema */}
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#E5DAD3] shadow-xs">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-line shadow-xs">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#6E615B] uppercase tracking-wider">Status do Armazenamento:</span>
+                <span className="text-xs font-bold text-muted uppercase tracking-wider">Status do Armazenamento:</span>
                 <StorageGlobalIndicator />
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-[#6E615B]">
-                <span className="hidden sm:inline">Setor Ativo: <strong className="text-[#1C1418]">{effectiveSector}</strong></span>
+              <div className="flex items-center gap-3 text-xs text-muted">
+                <span className="hidden sm:inline">Setor Ativo: <strong className="text-ink">{effectiveSector}</strong></span>
                 {isAdmin && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setCurrentTab('storage')}
-                      className={`font-semibold hover:underline cursor-pointer ${currentTab === 'storage' ? 'text-blue-600' : 'text-[#6E615B]'}`}
+                      className={`font-semibold hover:underline cursor-pointer ${currentTab === 'storage' ? 'text-blue-600' : 'text-muted'}`}
                     >
                       Painel de Armazenamento
                     </button>
-                    <span className="text-[#E5DAD3]">|</span>
+                    <span className="text-line">|</span>
                     <button
                       id="btn_top_bar_clear_history"
                       onClick={() => setIsClearHistoryModalOpen(true)}
-                      className="font-semibold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer flex items-center gap-1"
+                      className="font-semibold text-rose-700 hover:text-rose-800 hover:underline cursor-pointer flex items-center gap-1"
                       title="Limpar histórico de testes, auditoria, alertas e OPs"
                     >
                       <Trash2 size={13} />
@@ -669,23 +670,23 @@ export default function App() {
             {currentTab === 'evaluations' && (
               <section className="max-w-6xl">
                 <div>
-                  <p className="text-xs font-bold tracking-widest text-amber-400">GESTÃO DE DESEMPENHO</p>
-                  <h2 className="text-3xl font-black mt-1">Avaliações</h2>
-                  <p className="text-[#6E615B] mt-1">
+                  <p className="text-xs font-bold tracking-widest text-brand">GESTÃO DE DESEMPENHO</p>
+                  <h2 className="text-3xl font-bold mt-1">Avaliações</h2>
+                  <p className="text-muted mt-1">
                     Avalie operações, operadores, usuários e processos com rastreabilidade.
                   </p>
                 </div>
                 <div className="mt-6 grid gap-6 xl:grid-cols-[420px_1fr]">
-                  <div className="rounded-3xl border border-[#E5DAD3] bg-white p-6 space-y-5">
+                  <div className="rounded-2xl border border-line bg-white p-6 space-y-5">
                     <div>
-                      <label className="text-xs font-bold text-[#6E615B]">O QUE SERÁ AVALIADO</label>
+                      <label className="text-xs font-bold text-muted">O QUE SERÁ AVALIADO</label>
                       <select
                         value={evaluationType}
                         onChange={(event) => {
                           setEvaluationType(event.target.value);
                           setEvaluationTarget('');
                         }}
-                        className="mt-2 w-full rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] p-3"
+                        className="mt-2 w-full rounded-xl border border-line bg-canvas p-3"
                       >
                         <option value="operation">Operação / OP</option>
                         <option value="operator">Operador</option>
@@ -694,11 +695,11 @@ export default function App() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#6E615B]">SELECIONE</label>
+                      <label className="text-xs font-bold text-muted">SELECIONE</label>
                       <select
                         value={evaluationTarget}
                         onChange={(event) => setEvaluationTarget(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] p-3"
+                        className="mt-2 w-full rounded-xl border border-line bg-canvas p-3"
                       >
                         <option value="">Escolha um item...</option>
                         {evaluationOptions.map((option) => (
@@ -709,14 +710,14 @@ export default function App() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#6E615B]">NOTA</label>
+                      <label className="text-xs font-bold text-muted">NOTA</label>
                       <div className="mt-2 flex gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
                             onClick={() => setEvaluationRating(star)}
                             className={`rounded-xl p-2 ${
-                              star <= evaluationRating ? 'bg-amber-500 text-white' : 'bg-[#F2EBE6] text-[#8A7D77]'
+                              star <= evaluationRating ? 'bg-amber-500 text-white' : 'bg-hover text-subtle'
                             }`}
                           >
                             <Star className="w-6 h-6" fill="currentColor" />
@@ -725,42 +726,42 @@ export default function App() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-[#6E615B]">OBSERVAÇÃO</label>
+                      <label className="text-xs font-bold text-muted">OBSERVAÇÃO</label>
                       <textarea
                         value={evaluationComment}
                         onChange={(event) => setEvaluationComment(event.target.value)}
                         rows={4}
                         placeholder="Pontos positivos, desvios e oportunidades de melhoria..."
-                        className="mt-2 w-full rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] p-3"
+                        className="mt-2 w-full rounded-xl border border-line bg-canvas p-3"
                       />
                     </div>
                     <button
                       onClick={saveEvaluation}
                       disabled={!evaluationTarget}
-                      className="w-full rounded-xl bg-emerald-500 px-5 py-3 font-black text-white disabled:opacity-40 cursor-pointer"
+                      className="w-full rounded-xl bg-emerald-600 px-5 py-3 font-bold text-white disabled:opacity-40 cursor-pointer"
                     >
                       SALVAR AVALIAÇÃO
                     </button>
                   </div>
-                  <div className="rounded-3xl border border-[#E5DAD3] bg-white p-6">
+                  <div className="rounded-2xl border border-line bg-white p-6">
                     <div className="flex justify-between">
-                      <h3 className="font-black text-lg">Avaliações registradas</h3>
-                      <span className="rounded-full bg-[#F2EBE6] px-3 py-1 text-xs">
+                      <h3 className="font-bold text-lg">Avaliações registradas</h3>
+                      <span className="rounded-full bg-hover px-3 py-1 text-xs">
                         {evaluations.length} registros
                       </span>
                     </div>
                     {evaluations.length === 0 ? (
-                      <div className="py-16 text-center text-[#8A7D77]">
+                      <div className="py-16 text-center text-subtle">
                         <ClipboardCheck className="w-12 h-12 mx-auto mb-3" />
                         <p>Nenhuma avaliação registrada.</p>
                       </div>
                     ) : (
                       <div className="mt-4 space-y-3">
                         {evaluations.map((item) => (
-                          <article key={item.id} className="rounded-2xl border border-[#E5DAD3] bg-[#FAF5F1] p-4">
+                          <article key={item.id} className="rounded-2xl border border-line bg-canvas p-4">
                             <div className="flex justify-between gap-3">
                               <div>
-                                <p className="text-xs font-bold text-amber-400 uppercase">{item.type}</p>
+                                <p className="text-xs font-bold text-amber-700 uppercase">{item.type}</p>
                                 <h4 className="font-bold mt-1">{item.target}</h4>
                               </div>
                               <div className="flex gap-1">
@@ -769,16 +770,16 @@ export default function App() {
                                     key={star}
                                     className={
                                       star <= item.rating
-                                        ? 'w-4 h-4 text-amber-400'
-                                        : 'w-4 h-4 text-[#4A403C]'
+                                        ? 'w-4 h-4 text-amber-700'
+                                        : 'w-4 h-4 text-ink-soft'
                                     }
                                     fill="currentColor"
                                   />
                                 ))}
                               </div>
                             </div>
-                            {item.comment && <p className="text-sm text-[#6E615B] mt-3">{item.comment}</p>}
-                            <p className="text-[11px] text-[#9A8B84] mt-3">
+                            {item.comment && <p className="text-sm text-muted mt-3">{item.comment}</p>}
+                            <p className="text-[11px] text-faint mt-3">
                               {item.evaluator} · {item.date}
                             </p>
                           </article>
@@ -795,13 +796,13 @@ export default function App() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold">Fila de Produção</h2>
-                    <p className="text-[#6E615B] mt-1">
+                    <p className="text-muted mt-1">
                       {isAdmin || isPcp
                         ? 'Visão completa das filas de todas as máquinas da fábrica.'
                         : `Fila de produção exclusiva do setor ${effectiveSector} e máquinas autorizadas.`}
                     </p>
                   </div>
-                  <span className="text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-bold border border-amber-200">
+                  <span className="text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-200">
                     {userMachines.length} Máquina(s) no Setor
                   </span>
                 </div>
@@ -809,21 +810,21 @@ export default function App() {
                   {userMachines.map((mac) => {
                     const fila = getMachineQueue(mac.id);
                     return (
-                      <article key={mac.id} className="rounded-2xl border border-[#E5DAD3] bg-white p-5 shadow-sm">
+                      <article key={mac.id} className="rounded-2xl border border-line bg-white p-5 shadow-sm">
                         <div className="flex justify-between items-start gap-3">
                           <div>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FAF5F1] text-[#8A7D77] uppercase border border-[#E5DAD3]">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-canvas text-subtle uppercase border border-line">
                               {mac.sector}
                             </span>
-                            <h3 className="font-bold text-base mt-1 text-[#1C1418]">{mac.name}</h3>
+                            <h3 className="font-bold text-base mt-1 text-ink">{mac.name}</h3>
                           </div>
-                          <span className="text-xs rounded-full bg-[#FAF5F1] px-3 py-1 font-bold text-[#3A3034] border border-[#E5DAD3] whitespace-nowrap">
+                          <span className="text-xs rounded-full bg-canvas px-3 py-1 font-bold text-ink-soft border border-line whitespace-nowrap">
                             {fila.length} na fila
                           </span>
                         </div>
                         <div className="mt-4 space-y-2">
                           {fila.length === 0 && (
-                            <p className="text-xs text-[#8A7D77] italic py-3 text-center bg-[#FAF5F1] rounded-xl">
+                            <p className="text-xs text-subtle italic py-3 text-center bg-canvas rounded-xl">
                               Sem OP na fila desta máquina no momento.
                             </p>
                           )}
@@ -831,10 +832,10 @@ export default function App() {
                             const prio = item.order?.priority || 'VERDE';
                             const cor =
                               prio === 'VERMELHO'
-                                ? 'text-rose-600 bg-rose-50 border-rose-200'
+                                ? 'text-rose-700 bg-rose-50 border-rose-200'
                                 : prio === 'AMARELO'
-                                ? 'text-amber-600 bg-amber-50 border-amber-200'
-                                : 'text-emerald-600 bg-emerald-50 border-emerald-200';
+                                ? 'text-amber-700 bg-amber-50 border-amber-200'
+                                : 'text-emerald-700 bg-emerald-50 border-emerald-200';
                             const rotulo =
                               prio === 'VERMELHO'
                                 ? 'URGENTE'
@@ -844,20 +845,20 @@ export default function App() {
                             return (
                               <div
                                 key={item.step.id}
-                                className="rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] p-3.5 hover:border-amber-400 transition-all"
+                                className="rounded-xl border border-line bg-canvas p-3.5 hover:border-amber-700 transition-all"
                               >
                                 <div className="flex items-center justify-between">
                                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${cor}`}>
                                     {rotulo}
                                   </span>
-                                  <span className="text-xs font-bold text-[#1C1418]">
+                                  <span className="text-xs font-bold text-ink">
                                     OP #{item.order?.opNumber}
                                   </span>
                                 </div>
-                                <p className="font-semibold text-sm mt-1.5 text-[#1C1418]">
+                                <p className="font-semibold text-sm mt-1.5 text-ink">
                                   {item.step.processName} · {item.order?.productName}
                                 </p>
-                                <p className="text-xs text-[#6E615B] mt-1">
+                                <p className="text-xs text-muted mt-1">
                                   {item.step.receivedQuantity?.toLocaleString('pt-BR')} {item.step.unit} — Prazo:{' '}
                                   {item.order?.deadline
                                     ? new Date(item.order.deadline).toLocaleDateString('pt-BR')

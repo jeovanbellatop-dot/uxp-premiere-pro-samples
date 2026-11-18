@@ -40,6 +40,15 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
     registerPacking,
   } = useMesStore();
   const [packingOrder, setPackingOrder] = useState<ProductionOrder | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const guard = (fn: () => unknown) => {
+    setActionError(null);
+    try {
+      if (fn() === false) throw new Error('A OP não foi encontrada. Atualize a tela e tente de novo.');
+    } catch (err: any) {
+      setActionError(err?.message || 'Não foi possível concluir a ação.');
+    }
+  };
 
   const activeUser = authenticatedUser || currentUser;
 
@@ -117,28 +126,34 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
   return (
     <div className="max-w-5xl mx-auto pb-16 space-y-6">
+      {actionError && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-700 text-rose-800 text-sm font-bold flex items-start justify-between gap-3">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="font-bold cursor-pointer" aria-label="Fechar aviso">×</button>
+        </div>
+      )}
       {/* 1. Header do Responsável e da Estação Manual */}
-      <div className="rounded-3xl border border-[#E5DAD3] bg-white p-5 sm:p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5DAD3] pb-4">
+      <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
               <PackageCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-black text-[#1C1418] tracking-tight">
+                <h1 className="text-xl font-bold text-ink tracking-tight">
                   Expedição & Embalagem
                 </h1>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 font-extrabold uppercase">
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-700 font-semibold uppercase">
                   Processo Manual
                 </span>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-pink-100 text-[#B30A5C] border border-pink-200 font-extrabold uppercase">
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-pink-100 text-brand-dark border border-pink-200 font-semibold uppercase">
                   Sem Máquina
                 </span>
               </div>
-              <p className="text-xs text-[#6E615B] mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 Responsável:{' '}
-                <strong className="text-[#1C1418] font-bold">
+                <strong className="text-ink font-bold">
                   {activeUser.name || 'Carlos'}
                 </strong>{' '}
                 · Setor de Expedição & Liberação Final
@@ -146,8 +161,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold shrink-0">
-            <UserCheck className="w-4 h-4 text-emerald-600" />
+          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold shrink-0">
+            <UserCheck className="w-4 h-4 text-emerald-700" />
             <span>Carlos (Responsável Humano)</span>
           </div>
         </div>
@@ -158,14 +173,14 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             onClick={() => setFilterStatus('READY')}
             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
               filterStatus === 'READY'
-                ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
-                : 'bg-[#FAF5F1] border-[#E5DAD3] hover:bg-[#F2EBE6]'
+                ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-600/20'
+                : 'bg-canvas border-line hover:bg-hover'
             }`}
           >
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-800 block">
               Prontas p/ Embalar
             </span>
-            <span className="text-2xl font-black text-emerald-700 font-mono">
+            <span className="text-2xl font-bold text-emerald-800 font-mono">
               {countReady}
             </span>
           </button>
@@ -174,14 +189,14 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             onClick={() => setFilterStatus('PRODUCING')}
             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
               filterStatus === 'PRODUCING'
-                ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20'
-                : 'bg-[#FAF5F1] border-[#E5DAD3] hover:bg-[#F2EBE6]'
+                ? 'bg-blue-50 border-blue-600 ring-2 ring-blue-600/20'
+                : 'bg-canvas border-line hover:bg-hover'
             }`}
           >
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 block">
               Em Embalagem
             </span>
-            <span className="text-2xl font-black text-blue-800 font-mono">
+            <span className="text-2xl font-bold text-blue-800 font-mono">
               {countProducing}
             </span>
           </button>
@@ -191,13 +206,13 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
               filterStatus === 'WAITING'
                 ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-500/20'
-                : 'bg-[#FAF5F1] border-[#E5DAD3] hover:bg-[#F2EBE6]'
+                : 'bg-canvas border-line hover:bg-hover'
             }`}
           >
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-800 block">
               Aguardando Produção
             </span>
-            <span className="text-2xl font-black text-amber-700 font-mono">
+            <span className="text-2xl font-bold text-amber-800 font-mono">
               {countWaiting}
             </span>
           </button>
@@ -207,13 +222,13 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
               filterStatus === 'DONE'
                 ? 'bg-purple-50 border-purple-500 ring-2 ring-purple-500/20'
-                : 'bg-[#FAF5F1] border-[#E5DAD3] hover:bg-[#F2EBE6]'
+                : 'bg-canvas border-line hover:bg-hover'
             }`}
           >
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-700 block">
               Concluídas / Expedidas
             </span>
-            <span className="text-2xl font-black text-purple-800 font-mono">
+            <span className="text-2xl font-bold text-purple-800 font-mono">
               {countDone}
             </span>
           </button>
@@ -223,13 +238,13 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
       {/* 2. Filtros e Busca */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-[#8A7D77] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por OP, cliente ou produto..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-[#E5DAD3] text-xs text-[#1C1418] rounded-xl pl-9 pr-3 py-2 font-medium focus:border-[#E30A78] focus:outline-none shadow-xs"
+            className="w-full bg-white border border-line text-xs text-ink rounded-xl pl-9 pr-3 py-2 font-medium focus:border-brand focus:outline-none shadow-xs"
           />
         </div>
 
@@ -238,8 +253,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             onClick={() => setFilterStatus('ALL')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               filterStatus === 'ALL'
-                ? 'bg-[#1C1418] text-white shadow-sm'
-                : 'bg-white text-[#6E615B] hover:bg-[#FAF5F1] border border-[#E5DAD3]'
+                ? 'bg-ink text-white shadow-sm'
+                : 'bg-white text-muted hover:bg-canvas border border-line'
             }`}
           >
             Todas ({expeditionItems.length})
@@ -248,8 +263,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             onClick={() => setFilterStatus('READY')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               filterStatus === 'READY'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
+                ? 'bg-emerald-700 text-white shadow-sm'
+                : 'bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-200'
             }`}
           >
             Liberadas ({countReady})
@@ -268,8 +283,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             onClick={() => setFilterStatus('WAITING')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               filterStatus === 'WAITING'
-                ? 'bg-amber-600 text-white shadow-sm'
-                : 'bg-white text-amber-700 hover:bg-amber-50 border border-amber-200'
+                ? 'bg-amber-700 text-white shadow-sm'
+                : 'bg-white text-amber-800 hover:bg-amber-50 border border-amber-200'
             }`}
           >
             Aguardando ({countWaiting})
@@ -289,12 +304,12 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
       {/* 3. Lista de OPs na Fila de Expedição */}
       {filteredItems.length === 0 ? (
-        <div className="rounded-3xl border border-[#E5DAD3] bg-white p-12 text-center space-y-3">
-          <PackageCheck className="w-12 h-12 text-[#9A8B84] mx-auto" />
-          <h3 className="text-base font-bold text-[#1C1418]">
+        <div className="rounded-2xl border border-line bg-white p-12 text-center space-y-3">
+          <PackageCheck className="w-12 h-12 text-faint mx-auto" />
+          <h3 className="text-base font-bold text-ink">
             Nenhuma ordem encontrada nesta categoria
           </h3>
-          <p className="text-xs text-[#6E615B] max-w-md mx-auto">
+          <p className="text-xs text-muted max-w-md mx-auto">
             Assim que as etapas anteriores liberarem as peças, as ordens surgirão aqui para conferência e embalagem pelo Carlos.
           </p>
         </div>
@@ -310,16 +325,16 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
             return (
               <div
                 key={order.id}
-                className={`rounded-3xl border p-5 transition-all relative overflow-hidden ${
+                className={`rounded-2xl border p-5 transition-all relative overflow-hidden ${
                   isProducing
-                    ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg'
+                    ? 'bg-white border-emerald-600 ring-2 ring-emerald-600/20 shadow-sm'
                     : isReady
-                    ? 'bg-white border-emerald-300 shadow-md'
+                    ? 'bg-white border-emerald-700 shadow-sm'
                     : isPaused
-                    ? 'bg-white border-amber-400 ring-2 ring-amber-500/20 shadow-md'
+                    ? 'bg-white border-amber-700 ring-2 ring-amber-500/20 shadow-sm'
                     : isDone
-                    ? 'bg-[#FAF5F1]/80 border-[#E5DAD3] opacity-80'
-                    : 'bg-[#FAF5F1]/70 border-[#E5DAD3]'
+                    ? 'bg-canvas/80 border-line opacity-80'
+                    : 'bg-canvas/70 border-line'
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
@@ -332,7 +347,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                         size="md"
                         showZoom={true}
                         onZoomClick={() => setSelectedLayoutOp(order)}
-                        className="rounded-2xl shadow-sm border border-[#E5DAD3]"
+                        className="rounded-2xl shadow-sm border border-line"
                       />
                       <button
                         onClick={() => setSelectedLayoutOp(order)}
@@ -346,25 +361,25 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
                     <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono font-black text-base text-[#1C1418]">
+                        <span className="font-mono font-bold text-base text-ink">
                           OP #{order.opNumber}
                         </span>
-                        <span className="text-xs text-[#6E615B] font-medium">
+                        <span className="text-xs text-muted font-medium">
                           {order.client}
                         </span>
 
                         {/* Status Tag */}
                         <span
-                          className={`text-[10px] font-mono font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                          className={`text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                             isDone
-                              ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                              ? 'bg-purple-100 text-purple-800 border border-purple-800'
                               : isProducing
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-400 animate-pulse'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-700 animate-pulse'
                               : isPaused
-                              ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-700'
                               : isReady
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 font-black'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-700 font-bold'
+                              : 'bg-amber-50 text-amber-800 border border-amber-200'
                           }`}
                         >
                           {isDone
@@ -379,21 +394,21 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                         </span>
                       </div>
 
-                      <h4 className="font-extrabold text-sm text-[#1C1418]">
+                      <h4 className="font-semibold text-sm text-ink">
                         {order.productName}
                       </h4>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-[#6E615B]">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
                         <span>
                           Medidas:{' '}
-                          <strong className="text-[#1C1418]">
+                          <strong className="text-ink">
                             {order.dimensions.width}x{order.dimensions.height} cm
                           </strong>
                         </span>
                         <span>•</span>
                         <span>
                           Material:{' '}
-                          <strong className="text-[#1C1418]">
+                          <strong className="text-ink">
                             {order.material} {order.grammage}g ({order.color})
                           </strong>
                         </span>
@@ -402,7 +417,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                             <span>•</span>
                             <span>
                               Alça:{' '}
-                              <strong className="text-[#1C1418]">
+                              <strong className="text-ink">
                                 {order.handleType}
                               </strong>
                             </span>
@@ -412,15 +427,15 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
                       {/* Technical Notes / Packaging Guidelines */}
                       {order.technicalNotes && (
-                        <p className="text-[11px] text-[#8A7D77] italic bg-[#FAF5F1] px-2.5 py-1 rounded-lg border border-[#E5DAD3] inline-block mt-1">
+                        <p className="text-[11px] text-subtle italic bg-canvas px-2.5 py-1 rounded-lg border border-line inline-block mt-1">
                           Instruções: {order.technicalNotes}
                         </p>
                       )}
 
                       {/* Waiting Notice */}
                       {isWaiting && pendingStepName && (
-                        <div className="flex items-center gap-1.5 text-xs text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 mt-1">
-                          <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <div className="flex items-center gap-1.5 text-xs text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 mt-1">
+                          <Clock className="w-3.5 h-3.5 text-amber-700" />
                           <span>
                             Aguardando conclusão da etapa anterior: {pendingStepName}
                           </span>
@@ -430,40 +445,40 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                   </div>
 
                   {/* Middle: Quantities & Inherited Balance */}
-                  <div className="flex items-center gap-3 bg-[#FAF5F1] p-3.5 rounded-2xl border border-[#E5DAD3] text-xs font-mono shrink-0">
+                  <div className="flex items-center gap-3 bg-canvas p-3.5 rounded-2xl border border-line text-xs font-mono shrink-0">
                     <div>
-                      <span className="text-[10px] font-bold text-[#8A7D77] uppercase block font-sans">
+                      <span className="text-[10px] font-bold text-subtle uppercase block font-sans">
                         Recebido Anterior
                       </span>
-                      <span className="text-[#1C1418] font-bold text-sm">
+                      <span className="text-ink font-bold text-sm">
                         {step.receivedQuantity > 0
                           ? `${step.receivedQuantity.toLocaleString('pt-BR')} ${step.unit}`
                           : `Previsto: ${order.targetQuantity.toLocaleString('pt-BR')} ${step.unit}`}
                       </span>
                     </div>
 
-                    <ArrowRight className="w-4 h-4 text-[#8A7D77]" />
+                    <ArrowRight className="w-4 h-4 text-subtle" />
 
                     <div>
-                      <span className="text-[10px] font-bold text-[#8A7D77] uppercase block font-sans">
+                      <span className="text-[10px] font-bold text-subtle uppercase block font-sans">
                         Perdas
                       </span>
                       <span
                         className={`text-sm font-bold ${
-                          step.lossQuantity > 0 ? 'text-rose-600' : 'text-[#8A7D77]'
+                          step.lossQuantity > 0 ? 'text-rose-700' : 'text-subtle'
                         }`}
                       >
                         {step.lossQuantity} {step.unit}
                       </span>
                     </div>
 
-                    <ArrowRight className="w-4 h-4 text-[#8A7D77]" />
+                    <ArrowRight className="w-4 h-4 text-subtle" />
 
                     <div>
-                      <span className="text-[10px] font-bold text-emerald-700 uppercase block font-sans">
+                      <span className="text-[10px] font-bold text-emerald-800 uppercase block font-sans">
                         Saída Final
                       </span>
-                      <span className="text-emerald-700 font-black text-sm">
+                      <span className="text-emerald-800 font-bold text-sm">
                         {isDone
                           ? `${step.goodQuantity.toLocaleString('pt-BR')} ${step.unit}`
                           : `${step.receivedQuantity || order.targetQuantity} ${step.unit}`}
@@ -475,7 +490,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => setSelectedLayoutOp(order)}
-                      className="p-2.5 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#6E615B] hover:text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="p-2.5 rounded-xl bg-white hover:bg-hover text-muted hover:text-ink border border-line text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
                       title="Ver Layout & Dossiê Técnico"
                     >
                       <Eye className="w-4 h-4" />
@@ -484,8 +499,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
                     {isReady && (
                       <button
-                        onClick={() => startOperation(step.id, undefined, activeUser.id)}
-                        className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                        onClick={() => guard(() => startOperation(step.id, undefined, activeUser.id))}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                       >
                         <Play className="w-4 h-4 fill-white" />
                         <span>INICIAR EMBALAGEM</span>
@@ -496,7 +511,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                       <>
                         <button
                           onClick={() => setActivePauseStepId(step.id)}
-                          className="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-black text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                          className="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-700 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                         >
                           <Pause className="w-4 h-4 fill-white" />
                           <span>PAUSAR</span>
@@ -504,7 +519,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
                         <button
                           onClick={() => setActiveFinishStep({ step, order })}
-                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>FINALIZAR EXPEDIÇÃO</span>
@@ -515,8 +530,8 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                     {isPaused && (
                       <>
                         <button
-                          onClick={() => resumeOperation(step.id, undefined, activeUser.id)}
-                          className="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                          onClick={() => guard(() => resumeOperation(step.id, undefined, activeUser.id))}
+                          className="px-3 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                         >
                           <Play className="w-4 h-4 fill-white" />
                           <span>RETOMAR</span>
@@ -524,7 +539,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
 
                         <button
                           onClick={() => setActiveFinishStep({ step, order })}
-                          className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>FINALIZAR EXPEDIÇÃO</span>
@@ -535,7 +550,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                     {isDone && !order.packing && order.status === 'EXPEDICAO' && (
                       <button
                         onClick={() => setPackingOrder(order)}
-                        className="px-4 py-2.5 rounded-xl bg-[#E30A78] hover:bg-[#B30A5C] text-white font-black text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                       >
                         <PackageCheck className="w-4 h-4" />
                         <span>REGISTRAR CAIXAS E PESO</span>
@@ -554,7 +569,7 @@ export const ExpeditionCockpit: React.FC<ExpeditionCockpitProps> = ({ onSelectOp
                         {order.shipping?.etapa === 'EMITIR_NF' && (
                           <button
                             onClick={() => setPackingOrder(order)}
-                            className="text-[11px] font-bold text-[#B30A5C] underline cursor-pointer"
+                            className="text-[11px] font-bold text-brand-dark underline cursor-pointer"
                           >
                             Corrigir caixas
                           </button>

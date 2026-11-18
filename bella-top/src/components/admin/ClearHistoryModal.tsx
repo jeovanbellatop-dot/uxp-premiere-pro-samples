@@ -60,7 +60,7 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
         <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-rose-200 text-center">
-          <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto mb-3" />
+          <AlertTriangle className="w-12 h-12 text-rose-600 mx-auto mb-3" />
           <h3 className="text-lg font-bold text-gray-900 mb-1">Acesso Restrito</h3>
           <p className="text-xs text-gray-600 mb-4">
             Apenas administradores e master têm permissão para acessar a limpeza de histórico do sistema.
@@ -136,9 +136,9 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
       id="clear_history_modal_overlay"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-150"
     >
-      <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-rose-100 overflow-hidden my-6">
+      <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-rose-100 overflow-hidden my-6">
         {/* Cabeçalho de Alerta Crítico */}
-        <div className="bg-gradient-to-r from-rose-600 to-rose-700 p-5 sm:p-6 text-white relative">
+        <div className="bg-gradient-to-r from-rose-700 to-rose-800 p-5 sm:p-6 text-white relative">
           <button
             onClick={onClose}
             disabled={isSubmitting}
@@ -151,13 +151,13 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
               <Trash2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="inline-block text-[10px] font-mono uppercase tracking-widest bg-rose-900/40 px-2 py-0.5 rounded text-rose-100 font-bold mb-0.5">
+              <span className="inline-block text-[10px] font-mono uppercase tracking-widest bg-rose-100/40 px-2 py-0.5 rounded text-rose-800 font-bold mb-0.5">
                 Área Administrativa Exclusiva
               </span>
               <h2 className="text-xl font-bold leading-tight">Limpar Histórico do Sistema</h2>
             </div>
           </div>
-          <p className="text-xs text-rose-100/90 leading-relaxed max-w-md">
+          <p className="text-xs text-rose-800/90 leading-relaxed max-w-md">
             Esta operação expurga dados operacionais de teste do Firestore em lote (batch) e reseta o cache local.
           </p>
         </div>
@@ -165,14 +165,14 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
         {/* TELA DE SUCESSO / RELATÓRIO DE DELEÇÃO */}
         {resultCounts ? (
           <div className="p-6 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="w-10 h-10" />
             </div>
 
             <div>
               <h3 className="text-lg font-bold text-gray-900">Histórico Limpo com Sucesso!</h3>
               <p className="text-xs text-gray-500 mt-1">
-                Foram removidos <strong className="text-rose-600 font-bold">{resultCounts.total}</strong> registro(s) operacionais do banco de dados e do estado local.
+                Foram removidos <strong className="text-rose-700 font-bold">{resultCounts.total}</strong> registro(s) operacionais do banco de dados e do estado local.
               </p>
             </div>
 
@@ -200,7 +200,7 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
 
             {/* Aviso de segurança sobre cadastros intactos */}
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[11px] flex items-center gap-2 text-left">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
               <span>
                 <strong>Tudo seguro:</strong> Usuários, máquinas, produtos, catálogos, roteiros, arquivos e backups continuam 100% preservados.
               </span>
@@ -209,7 +209,7 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
             <button
               id="btn_finish_clear_history"
               onClick={handleCloseAndReload}
-              className="w-full py-3 bg-[#E30A78] hover:bg-[#c90868] text-white font-bold text-sm rounded-xl shadow-lg transition cursor-pointer"
+              className="w-full py-3 bg-brand hover:bg-brand-dark text-white font-bold text-sm rounded-xl shadow-sm transition cursor-pointer"
             >
               Concluir e Atualizar Dados
             </button>
@@ -219,7 +219,7 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
           <form onSubmit={handleExecuteClear} className="p-6 space-y-5">
             {errorMessage && (
               <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start gap-2.5">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
                 <div>
                   <strong className="block font-bold">Erro ao executar exclusão:</strong>
                   {errorMessage}
@@ -238,20 +238,20 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                   onClick={() => handleToggle('auditoria')}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                     selectedOptions.auditoria
-                      ? 'bg-rose-50/60 border-rose-300 text-gray-900'
+                      ? 'bg-rose-50/60 border-rose-700 text-gray-900'
                       : 'bg-gray-50 border-gray-200 text-gray-400'
                   }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-md flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                      selectedOptions.auditoria ? 'bg-rose-600 text-white' : 'border border-gray-300 bg-white'
+                      selectedOptions.auditoria ? 'bg-rose-700 text-white' : 'border border-gray-300 bg-white'
                     }`}
                   >
                     {selectedOptions.auditoria && <Check size={14} className="stroke-[3]" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <History size={14} className="text-rose-600" />
+                      <History size={14} className="text-rose-700" />
                       <span>(1) Histórico de logins e auditoria</span>
                       <span className="text-[10px] font-mono text-gray-500 bg-white px-1.5 py-0.2 rounded border border-gray-200">
                         coleção auditoria
@@ -268,20 +268,20 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                   onClick={() => handleToggle('alertas')}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                     selectedOptions.alertas
-                      ? 'bg-rose-50/60 border-rose-300 text-gray-900'
+                      ? 'bg-rose-50/60 border-rose-700 text-gray-900'
                       : 'bg-gray-50 border-gray-200 text-gray-400'
                   }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-md flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                      selectedOptions.alertas ? 'bg-rose-600 text-white' : 'border border-gray-300 bg-white'
+                      selectedOptions.alertas ? 'bg-rose-700 text-white' : 'border border-gray-300 bg-white'
                     }`}
                   >
                     {selectedOptions.alertas && <Check size={14} className="stroke-[3]" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <Bell size={14} className="text-amber-600" />
+                      <Bell size={14} className="text-amber-700" />
                       <span>(2) Alertas do sistema</span>
                       <span className="text-[10px] font-mono text-gray-500 bg-white px-1.5 py-0.2 rounded border border-gray-200">
                         coleção alertas
@@ -298,13 +298,13 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                   onClick={() => handleToggle('ops')}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                     selectedOptions.ops
-                      ? 'bg-rose-50/60 border-rose-300 text-gray-900'
+                      ? 'bg-rose-50/60 border-rose-700 text-gray-900'
                       : 'bg-gray-50 border-gray-200 text-gray-400'
                   }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-md flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                      selectedOptions.ops ? 'bg-rose-600 text-white' : 'border border-gray-300 bg-white'
+                      selectedOptions.ops ? 'bg-rose-700 text-white' : 'border border-gray-300 bg-white'
                     }`}
                   >
                     {selectedOptions.ops && <Check size={14} className="stroke-[3]" />}
@@ -328,13 +328,13 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                   onClick={() => handleToggle('sessoesParadasUploads')}
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                     selectedOptions.sessoesParadasUploads
-                      ? 'bg-rose-50/60 border-rose-300 text-gray-900'
+                      ? 'bg-rose-50/60 border-rose-700 text-gray-900'
                       : 'bg-gray-50 border-gray-200 text-gray-400'
                   }`}
                 >
                   <div
                     className={`w-5 h-5 rounded-md flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                      selectedOptions.sessoesParadasUploads ? 'bg-rose-600 text-white' : 'border border-gray-300 bg-white'
+                      selectedOptions.sessoesParadasUploads ? 'bg-rose-700 text-white' : 'border border-gray-300 bg-white'
                     }`}
                   >
                     {selectedOptions.sessoesParadasUploads && <Check size={14} className="stroke-[3]" />}
@@ -358,10 +358,10 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
             {/* Quadro de Garantia de Segurança */}
             <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-2xl">
               <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold mb-1">
-                <ShieldCheck size={16} className="text-emerald-600" />
+                <ShieldCheck size={16} className="text-emerald-700" />
                 <span>Proteção Absoluta de Cadastros Críticos</span>
               </div>
-              <p className="text-[11px] text-emerald-700 leading-relaxed">
+              <p className="text-[11px] text-emerald-800 leading-relaxed">
                 <strong>NUNCA apagados:</strong> Usuários, máquinas, produtos, clientes, configurações, setores, processos, regras de roteamento, arquivos e backups.
               </p>
             </div>
@@ -372,7 +372,7 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                 htmlFor="input_confirm_clear_history"
                 className="block text-xs font-bold text-gray-800"
               >
-                Para liberar a exclusão, digite a palavra <span className="text-rose-600 font-mono font-black text-sm">APAGAR</span> abaixo:
+                Para liberar a exclusão, digite a palavra <span className="text-rose-700 font-mono font-bold text-sm">APAGAR</span> abaixo:
               </label>
               <input
                 id="input_confirm_clear_history"
@@ -382,11 +382,11 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                 placeholder="Digite APAGAR"
                 autoComplete="off"
                 disabled={isSubmitting}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-mono font-bold text-gray-900 focus:bg-white focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-200 transition-all uppercase placeholder-gray-400"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm font-mono font-bold text-gray-900 focus:bg-white focus:outline-none focus:border-rose-600 focus:ring-2 focus:ring-rose-200 transition-all uppercase placeholder-gray-400"
               />
               <p className="text-[11px] text-gray-500">
                 {isConfirmed ? (
-                  <span className="text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <CheckCircle2 size={13} /> Palavra de segurança confirmada.
                   </span>
                 ) : (
@@ -410,7 +410,7 @@ export const ClearHistoryModal: React.FC<ClearHistoryModalProps> = ({
                 type="submit"
                 id="btn_confirm_clear_history"
                 disabled={!isConfirmed || !hasSelection || isSubmitting}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 shadow-sm shadow-rose-700/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>

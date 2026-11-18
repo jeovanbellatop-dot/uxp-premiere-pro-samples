@@ -114,23 +114,23 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      className="fixed inset-0 z-50 bg-[#1C1418]/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in select-none"
+      className="fixed inset-0 z-50 bg-ink/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in select-none"
     >
-      <div className="bg-white border border-[#E5DAD3] w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white border border-line w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-[#FAF5F1] px-6 py-4 border-b border-[#E5DAD3] flex items-center justify-between">
+        <div className="bg-canvas px-6 py-4 border-b border-line flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#E30A78]/15 border border-[#E30A78]/30 text-[#E30A78] flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-xl bg-brand/15 border border-brand/30 text-brand flex items-center justify-center font-bold">
               <Crop className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-[#1C1418] flex items-center gap-2">
+              <h3 className="font-semibold text-base text-ink flex items-center gap-2">
                 <span>Recortar Foto Principal da OP #{opNumber}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-[#B30A5C] font-mono border border-pink-200">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-brand-dark font-mono border border-pink-200">
                   Referência Visual Oficial
                 </span>
               </h3>
-              <p className="text-xs text-[#6E615B]">
+              <p className="text-xs text-muted">
                 Arraste e redimensione o quadro para enquadrar exclusivamente a foto da sacola/saco no layout.
               </p>
             </div>
@@ -138,7 +138,7 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-[#6E615B] hover:text-[#1C1418] hover:bg-[#F2EBE6] transition-colors"
+            className="p-1.5 rounded-xl text-muted hover:text-ink hover:bg-hover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -148,14 +148,14 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
         <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Interactive Layout Image Viewer with Crop Frame */}
           <div className="lg:col-span-2 flex flex-col space-y-3">
-            <div className="flex items-center justify-between text-xs text-[#6E615B]">
-              <span className="font-semibold flex items-center gap-1.5 text-[#1C1418]">
-                <Layers className="w-4 h-4 text-[#E30A78]" />
+            <div className="flex items-center justify-between text-xs text-muted">
+              <span className="font-semibold flex items-center gap-1.5 text-ink">
+                <Layers className="w-4 h-4 text-brand" />
                 Layout Original Aprovado
               </span>
               <button
                 onClick={handleReset}
-                className="flex items-center gap-1 text-[#E30A78] hover:underline font-bold text-[11px]"
+                className="flex items-center gap-1 text-brand hover:underline font-bold text-[11px]"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Centralizar Padrão</span>
@@ -164,7 +164,7 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
 
             <div
               ref={containerRef}
-              className="relative w-full h-80 sm:h-96 bg-[#FAF5F1] rounded-2xl border border-[#E5DAD3] overflow-hidden flex items-center justify-center cursor-crosshair shadow-inner"
+              className="relative w-full h-80 sm:h-96 bg-canvas rounded-2xl border border-line overflow-hidden flex items-center justify-center cursor-crosshair shadow-inner"
             >
               <img
                 src={layoutImage}
@@ -182,26 +182,26 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
                   height: `${cropBox.height}%`,
                 }}
                 onMouseDown={handleMouseDownOnBox}
-                className="absolute border-2 border-[#E30A78] bg-[#E30A78]/10 shadow-[0_0_0_9999px_rgba(28,20,24,0.45)] cursor-move transition-shadow rounded-lg"
+                className="absolute border-2 border-brand bg-brand/10 shadow-[0_0_0_9999px_rgba(28,20,24,0.45)] cursor-move transition-shadow rounded-lg"
               >
                 {/* Center Badge */}
-                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-[#1C1418]/80 text-[#F5C6DC] text-[9px] font-mono font-bold flex items-center gap-1 pointer-events-none">
-                  <Sparkles className="w-2.5 h-2.5 text-[#E30A78]" />
+                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-ink/80 text-brand-soft text-[9px] font-mono font-bold flex items-center gap-1 pointer-events-none">
+                  <Sparkles className="w-2.5 h-2.5 text-brand" />
                   <span>Foto da Sacola</span>
                 </div>
 
                 {/* Resize Handle at bottom right */}
                 <div
                   onMouseDown={handleMouseDownOnResize}
-                  className="absolute -bottom-2.5 -right-2.5 w-6 h-6 rounded-full bg-[#E30A78] border-2 border-white shadow-md flex items-center justify-center cursor-se-resize hover:scale-110 active:scale-95 transition-transform"
+                  className="absolute -bottom-2.5 -right-2.5 w-6 h-6 rounded-full bg-brand border-2 border-white shadow-sm flex items-center justify-center cursor-se-resize hover:scale-110 active:scale-95 transition-transform"
                 >
                   <Sliders className="w-3 h-3 text-white" />
                 </div>
               </div>
             </div>
 
-            <p className="text-[11px] text-[#8A7D77] flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-[#E30A78] shrink-0" />
+            <p className="text-[11px] text-subtle flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5 text-brand shrink-0" />
               <span>
                 Dica: Evite incluir os textos da ficha técnica, réguas ou fundo rosa na miniatura para manter a clareza visual.
               </span>
@@ -209,14 +209,14 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
           </div>
 
           {/* Result Preview Column */}
-          <div className="flex flex-col justify-between space-y-4 bg-[#FAF5F1] border border-[#E5DAD3] p-5 rounded-2xl">
+          <div className="flex flex-col justify-between space-y-4 bg-canvas border border-line p-5 rounded-2xl">
             <div className="space-y-4">
-              <h4 className="font-extrabold text-sm text-[#1C1418] border-b border-[#E5DAD3] pb-2 flex items-center gap-2">
+              <h4 className="font-semibold text-sm text-ink border-b border-line pb-2 flex items-center gap-2">
                 <span>Resultado da Miniatura</span>
               </h4>
 
               <div className="flex flex-col items-center justify-center space-y-3">
-                <div className="w-40 h-40 rounded-2xl bg-white border-2 border-[#E5DAD3] p-1.5 shadow-sm overflow-hidden flex items-center justify-center">
+                <div className="w-40 h-40 rounded-2xl bg-white border-2 border-line p-1.5 shadow-sm overflow-hidden flex items-center justify-center">
                   {previewThumbnail ? (
                     <img
                       src={previewThumbnail}
@@ -225,20 +225,20 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="text-xs text-[#8A7D77]">Gerando preview...</div>
+                    <div className="text-xs text-subtle">Gerando preview...</div>
                   )}
                 </div>
 
-                <span className="text-[11px] text-[#6E615B] font-mono font-medium text-center">
+                <span className="text-[11px] text-muted font-mono font-medium text-center">
                   Esta imagem acompanhará a OP em todas as filas, painéis de máquina e apontamentos.
                 </span>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#E5DAD3] space-y-2">
+            <div className="pt-4 border-t border-line space-y-2">
               <button
                 onClick={handleConfirm}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#E30A78] to-[#B30A5C] hover:from-[#d1096e] hover:to-[#a00952] text-white font-extrabold text-xs shadow-lg shadow-pink-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand-deep text-white font-semibold text-xs shadow-sm shadow-pink-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               >
                 <Check className="w-4 h-4 stroke-[3]" />
                 <span>SALVAR FOTO PRINCIPAL</span>
@@ -246,7 +246,7 @@ export const LayoutCropModal: React.FC<LayoutCropModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="w-full py-2.5 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors"
+                className="w-full py-2.5 rounded-xl bg-white hover:bg-hover text-ink border border-line text-xs font-bold transition-colors"
               >
                 Cancelar
               </button>

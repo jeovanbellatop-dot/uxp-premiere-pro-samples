@@ -9,3 +9,4 @@ coverage/
 .master_temp_password.txt
 logins-teste.csv
 senhas-trocadas.csv
+server/storage_cache/

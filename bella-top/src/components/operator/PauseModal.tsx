@@ -98,27 +98,27 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#FAF5F1] backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
-      <div className="bg-white border border-[#E5DAD3] w-full max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh]">
+    <div className="fixed inset-0 z-50 bg-canvas backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+      <div className="bg-white border border-line w-full max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh]">
         {/* Header */}
-        <div className="bg-[#FAF5F1] px-4 sm:px-6 py-4 border-b border-[#E5DAD3] flex items-center justify-between shrink-0">
+        <div className="bg-canvas px-4 sm:px-6 py-4 border-b border-line flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center font-bold">
               <PauseCircle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-[#1C1418]">
+              <h3 className="font-semibold text-base text-ink">
                 Registrar Pausa de Produção
               </h3>
-              <p className="text-xs text-[#6E615B]">
-                Máquina: <span className="text-amber-400 font-semibold">{machineName}</span> • OP #{opNumber}
+              <p className="text-xs text-muted">
+                Máquina: <span className="text-amber-700 font-semibold">{machineName}</span> • OP #{opNumber}
               </p>
             </div>
           </div>
 
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-lg text-[#6E615B] hover:text-[#1C1418] hover:bg-[#F2EBE6]"
+            className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-hover"
           >
             <X className="w-5 h-5" />
           </button>
@@ -127,13 +127,13 @@ export const PauseModal: React.FC<PauseModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4 text-xs">
           {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
               <span className="font-semibold text-xs">{errorMsg}</span>
             </div>
           )}
 
-          <p className="text-[#3A3034] font-medium">
+          <p className="text-ink-soft font-medium">
             Selecione o motivo da interrupção para fins de auditoria e cálculo de disponibilidade OEE:
           </p>
 
@@ -150,7 +150,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   'px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-all ' +
                   (selectedGroup === g.group
                     ? 'bg-amber-500 border-amber-500 text-white'
-                    : 'bg-[#FAF5F1] border-[#E5DAD3] text-[#3A3034] hover:bg-[#F2EBE6]')
+                    : 'bg-canvas border-line text-ink-soft hover:bg-hover')
                 }
               >
                 {g.group}
@@ -164,8 +164,8 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                 key={reason}
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                   selectedReason === reason
-                    ? 'bg-amber-500/10 border-amber-500/50 text-[#1C1418] font-bold ring-1 ring-amber-400/20'
-                    : 'bg-[#FAF5F1] border-[#E5DAD3] text-[#3A3034] hover:bg-[#F2EBE6]'
+                    ? 'bg-amber-500/10 border-amber-500/50 text-ink font-bold ring-1 ring-amber-700/20'
+                    : 'bg-canvas border-line text-ink-soft hover:bg-hover'
                 }`}
               >
                 <input
@@ -174,7 +174,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   value={reason}
                   checked={selectedReason === reason}
                   onChange={() => setSelectedReason(reason)}
-                  className="text-amber-500 focus:ring-amber-400"
+                  className="text-amber-500 focus:ring-brand"
                 />
                 <span>{reason}</span>
               </label>
@@ -183,7 +183,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
 
           {selectedReason === OTHER_REASON && (
             <div className="space-y-1 pt-2">
-              <label className="text-[#6E615B] text-xs font-medium">
+              <label className="text-muted text-xs font-medium">
                 Descreva o motivo detalhado:
               </label>
               <textarea
@@ -192,22 +192,22 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                 value={customReason}
                 onChange={(e) => setCustomReason(e.target.value)}
                 placeholder="Ex: Falha no sensor óptico do cabeçote de solda..."
-                className="w-full bg-[#FAF5F1] border border-[#E5DAD3] rounded-lg p-2.5 text-[#1C1418] placeholder-[#9A8B84] focus:outline-none focus:border-amber-400"
+                className="w-full bg-canvas border border-line rounded-lg p-2.5 text-ink placeholder-faint focus:outline-none focus:border-brand"
               />
             </div>
           )}
 
-          <div className="sticky bottom-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white border-t border-[#E5DAD3] grid grid-cols-2 gap-3 items-center">
+          <div className="sticky bottom-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white border-t border-line grid grid-cols-2 gap-3 items-center">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-12 w-full px-4 rounded-xl bg-[#F2EBE6] hover:bg-[#E8DED8] text-[#3A3034] font-bold"
+              className="min-h-12 w-full px-4 rounded-xl bg-hover hover:bg-line text-ink-soft font-bold"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="min-h-12 w-full px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-extrabold text-xs shadow-lg"
+              className="min-h-12 w-full px-4 rounded-xl bg-amber-500 hover:bg-amber-700 text-white font-semibold text-xs shadow-sm"
             >
               CONFIRMAR PAUSA
             </button>

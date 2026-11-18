@@ -59,15 +59,15 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Top Banner & Quick Stats */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#E5DAD3] p-5 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-line p-5 rounded-2xl shadow-sm">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1418] flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-ink flex items-center gap-2">
             <span>Visão Geral do Chão de Fábrica</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-normal border border-emerald-500/30">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-600/20 text-emerald-700 font-mono font-normal border border-emerald-600/30">
               Operação em Tempo Real
             </span>
           </h2>
-          <p className="text-xs text-[#6E615B] mt-0.5">
+          <p className="text-xs text-muted mt-0.5">
             Monitoramento centralizado de velocidade, filas de máquinas, apontamentos e controle de perdas.
           </p>
         </div>
@@ -75,7 +75,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
         <div className="flex items-center gap-2.5">
           <button
             onClick={onOpenUpload}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="px-4 py-2 bg-brand hover:bg-brand-dark text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <TrendingUp className="w-4 h-4" />
             <span>Processar Nova OP (PDF)</span>
@@ -87,89 +87,89 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         
         {/* Total Machines */}
-        <div className="bg-white border border-[#E5DAD3] p-4 rounded-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#6E615B]">
+        <div className="bg-white border border-line p-4 rounded-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted">
             <span className="text-xs font-medium uppercase tracking-wider">Máquinas Cadastradas</span>
-            <Cpu className="w-4 h-4 text-[#6E615B]" />
+            <Cpu className="w-4 h-4 text-muted" />
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-black text-[#1C1418]">{totalMachines}</div>
-            <div className="text-[11px] text-emerald-500 font-medium mt-0.5 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <div className="text-2xl font-bold text-ink">{totalMachines}</div>
+            <div className="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
               {machines.filter(m => m.status !== 'MANUTENCAO').length} Operacionais
             </div>
           </div>
         </div>
 
         {/* Unavailable Machines */}
-        <div className="bg-white border border-[#E5DAD3] p-4 rounded-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#6E615B]">
+        <div className="bg-white border border-line p-4 rounded-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted">
             <span className="text-xs font-medium uppercase tracking-wider">Indisponíveis</span>
-            <PauseCircle className="w-4 h-4 text-rose-500" />
+            <PauseCircle className="w-4 h-4 text-rose-600" />
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-black text-rose-500">{machines.filter(m => m.status === 'MANUTENCAO').length}</div>
-            <div className="text-[11px] text-[#6E615B] mt-0.5">
+            <div className="text-2xl font-bold text-rose-600">{machines.filter(m => m.status === 'MANUTENCAO').length}</div>
+            <div className="text-[11px] text-muted mt-0.5">
               Em Manutenção
             </div>
           </div>
         </div>
 
         {/* OPs in Production */}
-        <div className="bg-white border border-[#E5DAD3] p-4 rounded-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#6E615B]">
+        <div className="bg-white border border-line p-4 rounded-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted">
             <span className="text-xs font-medium uppercase tracking-wider">OPs em Rota</span>
-            <Layers className="w-4 h-4 text-blue-400" />
+            <Layers className="w-4 h-4 text-blue-700" />
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-black text-[#1C1418]">{activeOrders.length}</div>
-            <div className="text-[11px] text-[#6E615B] mt-0.5">
+            <div className="text-2xl font-bold text-ink">{activeOrders.length}</div>
+            <div className="text-[11px] text-muted mt-0.5">
               {orders.filter((o) => o.status === 'FINALIZADA').length} já concluídas
             </div>
           </div>
         </div>
 
         {/* Priority Green */}
-        <div className="bg-white border border-emerald-900/40 p-4 rounded-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#6E615B]">
-            <span className="text-xs font-medium uppercase tracking-wider text-emerald-400">No Prazo</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30"></span>
+        <div className="bg-white border border-emerald-100/40 p-4 rounded-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted">
+            <span className="text-xs font-medium uppercase tracking-wider text-emerald-700">No Prazo</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 ring-2 ring-emerald-600/30"></span>
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-black text-emerald-400">{greenOrders.length}</div>
-            <div className="text-[11px] text-[#6E615B] mt-0.5">Margem segura</div>
+            <div className="text-2xl font-bold text-emerald-700">{greenOrders.length}</div>
+            <div className="text-[11px] text-muted mt-0.5">Margem segura</div>
           </div>
         </div>
 
         {/* Priority Yellow / Red */}
-        <div className="bg-white border border-amber-900/40 p-4 rounded-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#6E615B]">
-            <span className="text-xs font-medium uppercase tracking-wider text-amber-400">Atenção / Risco</span>
+        <div className="bg-white border border-amber-200/40 p-4 rounded-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted">
+            <span className="text-xs font-medium uppercase tracking-wider text-amber-700">Atenção / Risco</span>
             <div className="flex gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-700"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
             </div>
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-black text-amber-300">
+            <div className="text-2xl font-bold text-amber-700">
               {yellowOrders.length}{' '}
-              <span className="text-rose-400 text-lg">/ {redOrders.length}</span>
+              <span className="text-rose-700 text-lg">/ {redOrders.length}</span>
             </div>
-            <div className="text-[11px] text-rose-400 font-medium mt-0.5">
+            <div className="text-[11px] text-rose-700 font-medium mt-0.5">
               {redOrders.length > 0 ? `${redOrders.length} críticas urgentes` : '0 atrasos iminentes'}
             </div>
           </div>
         </div>
 
         {/* Losses / Scrap rate */}
-        <div className="bg-white border border-[#E5DAD3] p-4 rounded-xl flex flex-col justify-between">
-          <div className="flex items-center justify-between text-[#6E615B]">
+        <div className="bg-white border border-line p-4 rounded-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted">
             <span className="text-xs font-medium uppercase tracking-wider">Taxa de Perdas</span>
-            <Flame className="w-4 h-4 text-rose-400" />
+            <Flame className="w-4 h-4 text-rose-700" />
           </div>
           <div className="mt-2">
-            <div className="text-2xl font-black text-rose-300">{scrapRatePct}%</div>
-            <div className="text-[11px] text-[#6E615B] mt-0.5">
+            <div className="text-2xl font-bold text-rose-700">{scrapRatePct}%</div>
+            <div className="text-[11px] text-muted mt-0.5">
               {totalLosses.toLocaleString('pt-BR')} unidades perdidas
             </div>
           </div>
@@ -179,11 +179,11 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
       {/* Active Machine Cards Fleet (Section 32) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-[#1C1418] flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-amber-400" />
+          <h3 className="text-base font-bold text-ink flex items-center gap-2">
+            <Cpu className="w-4 h-4 text-amber-700" />
             <span>Painel Operacional das Máquinas</span>
           </h3>
-          <span className="text-xs text-[#6E615B]">
+          <span className="text-xs text-muted">
             Clique em uma máquina para acessar a fila e terminal de apontamento
           </span>
         </div>
@@ -210,12 +210,12 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
               <div
                 key={machine.id}
                 onClick={() => onSelectMachine(machine.id)}
-                className={`bg-white border rounded-xl p-4 transition-all hover:border-amber-400/60 hover:shadow-lg cursor-pointer flex flex-col justify-between ${
+                className={`bg-white border rounded-xl p-4 transition-all hover:border-amber-700/60 hover:shadow-sm cursor-pointer flex flex-col justify-between ${
                   isProducing
-                    ? 'border-emerald-700/50 ring-1 ring-emerald-500/20'
+                    ? 'border-emerald-800/50 ring-1 ring-emerald-600/20'
                     : isPaused
-                    ? 'border-amber-700/50 bg-amber-950/10'
-                    : 'border-[#E5DAD3]'
+                    ? 'border-amber-800/50 bg-amber-50/10'
+                    : 'border-line'
                 }`}
               >
                 {/* Machine Header */}
@@ -223,27 +223,27 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-[#F2EBE6] text-[#3A3034] font-bold border border-[#E5DAD3]">
+                        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-hover text-ink-soft font-bold border border-line">
                           {machine.code}
                         </span>
-                        <h4 className="font-bold text-sm text-[#1C1418]">{machine.name}</h4>
+                        <h4 className="font-bold text-sm text-ink">{machine.name}</h4>
                       </div>
-                      <p className="text-[11px] text-[#6E615B] mt-0.5">{machine.sector}</p>
+                      <p className="text-[11px] text-muted mt-0.5">{machine.sector}</p>
                     </div>
 
                     {/* Status Badge */}
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 font-mono ${
                         isProducing
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          ? 'bg-emerald-600/20 text-emerald-700 border border-emerald-600/40'
                           : isPaused
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse'
-                          : 'bg-[#F2EBE6] text-[#6E615B] border border-[#E5DAD3]'
+                          ? 'bg-amber-500/20 text-amber-700 border border-amber-500/40 animate-pulse'
+                          : 'bg-hover text-muted border border-line'
                       }`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full ${
-                          isProducing ? 'bg-emerald-400 animate-pulse' : isPaused ? 'bg-amber-400' : 'bg-[#9A8B84]'
+                          isProducing ? 'bg-emerald-700 animate-pulse' : isPaused ? 'bg-amber-700' : 'bg-faint'
                         }`}
                       ></span>
                       {machine.status}
@@ -252,7 +252,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
 
                   {/* Current Active Job Content */}
                   {currentOp && currentStep ? (
-                    <div className="mt-3.5 pt-3 border-t border-[#E5DAD3] space-y-2">
+                    <div className="mt-3.5 pt-3 border-t border-line space-y-2">
                       <div className="flex items-center gap-2.5">
                         <OpProductThumbnail
                           thumbnail={currentOp.productThumbnail}
@@ -263,45 +263,45 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-mono font-bold text-[#1C1418] flex items-center gap-1">
+                            <span className="font-mono font-bold text-ink flex items-center gap-1">
                               OP #{currentOp.opNumber}
                               <PriorityBadge priority={currentOp.priority} />
                             </span>
-                            <span className="text-[#6E615B] text-[11px] truncate max-w-[120px]">
+                            <span className="text-muted text-[11px] truncate max-w-[120px]">
                               {currentOp.client}
                             </span>
                           </div>
-                          <div className="text-xs text-[#3A3034] font-medium truncate mt-0.5">
+                          <div className="text-xs text-ink-soft font-medium truncate mt-0.5">
                             {currentOp.productName}
                           </div>
                         </div>
                       </div>
 
-                      <div className="text-xs text-[#3A3034] font-medium flex items-center justify-between">
-                        <span className="text-[11px] text-[#6E615B]">Produção da Etapa:</span>
-                        <span className="text-[11px] text-[#6E615B] font-mono font-bold">
+                      <div className="text-xs text-ink-soft font-medium flex items-center justify-between">
+                        <span className="text-[11px] text-muted">Produção da Etapa:</span>
+                        <span className="text-[11px] text-muted font-mono font-bold">
                           {currentStep.producedQuantity.toLocaleString('pt-BR')} /{' '}
                           {currentStep.receivedQuantity.toLocaleString('pt-BR')} {currentStep.unit}
                         </span>
                       </div>
 
                       {/* Progress Bar */}
-                      <div className="w-full bg-[#F2EBE6] rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-hover rounded-full h-2 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            isPaused ? 'bg-amber-400' : 'bg-emerald-500'
+                            isPaused ? 'bg-amber-700' : 'bg-emerald-600'
                           }`}
                           style={{ width: `${progress}%` }}
                         ></div>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] text-[#6E615B] pt-1 font-mono">
+                      <div className="flex items-center justify-between text-[11px] text-muted pt-1 font-mono">
                         <span>
                           {progress}% • Vel: {machine.nominalSpeed}{' '}
                           {machine.productionUnit === 'METROS' ? 'm/min' : 'un/h'}
                         </span>
-                        <span className="flex items-center gap-1 text-[#3A3034]">
-                          <Clock className="w-3 h-3 text-[#8A7D77]" />
+                        <span className="flex items-center gap-1 text-ink-soft">
+                          <Clock className="w-3 h-3 text-subtle" />
                           Prev:{' '}
                           {new Date(currentOp.estimatedCompletionDate).toLocaleTimeString('pt-BR', {
                             hour: '2-digit',
@@ -311,20 +311,20 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                       </div>
 
                       {isPaused && machine.currentPauseReason && (
-                        <div className="p-2 rounded bg-amber-950/40 border border-amber-900/60 text-[11px] text-amber-300 font-medium mt-1">
+                        <div className="p-2 rounded bg-amber-50/40 border border-amber-200/60 text-[11px] text-amber-700 font-medium mt-1">
                           ⚠️ Pausa: {machine.currentPauseReason}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="mt-4 pt-3 border-t border-[#E5DAD3] text-center py-3 text-[#8A7D77] text-xs">
+                    <div className="mt-4 pt-3 border-t border-line text-center py-3 text-subtle text-xs">
                       Nenhuma OP em execução no momento (Disponível)
                     </div>
                   )}
                 </div>
 
                 {/* Footer specs */}
-                <div className="mt-3 pt-2.5 border-t border-[#E5DAD3] flex items-center justify-between text-[11px] text-[#6E615B]">
+                <div className="mt-3 pt-2.5 border-t border-line flex items-center justify-between text-[11px] text-muted">
                   <span>
                     Eficiência Histórica: {(machine.historicalEfficiencyFactor * 100).toFixed(0)}%
                   </span>
@@ -335,7 +335,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                       e.stopPropagation();
                       onSelectMachine(machine.id);
                     }}
-                    className="text-amber-500 hover:text-amber-600 font-bold hover:underline flex items-center gap-1 text-xs cursor-pointer py-1 px-2 rounded-lg hover:bg-amber-50 transition"
+                    className="text-brand hover:text-brand-dark font-bold hover:underline flex items-center gap-1 text-xs cursor-pointer py-1 px-2 rounded-lg hover:bg-amber-50 transition"
                   >
                     <span>Abrir Fila</span>
                     <ArrowRight className="w-3 h-3" />
@@ -348,14 +348,14 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
       </div>
 
       {/* Production Orders Fleet Matrix (Section 30, 33, 54) */}
-      <div className="bg-white border border-[#E5DAD3] rounded-2xl p-5 space-y-4">
+      <div className="bg-white border border-line rounded-2xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="font-bold text-base text-[#1C1418] flex items-center gap-2">
-              <Layers className="w-4 h-4 text-blue-400" />
+            <h3 className="font-bold text-base text-ink flex items-center gap-2">
+              <Layers className="w-4 h-4 text-blue-700" />
               <span>Acompanhamento Geral das Ordens de Produção (OPs)</span>
             </h3>
-            <p className="text-xs text-[#6E615B]">
+            <p className="text-xs text-muted">
               Rastreamento em tempo real do avanço físico, roteiro e perdas registradas em cada etapa
             </p>
           </div>
@@ -363,7 +363,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAF5F1] text-[#6E615B] uppercase text-[10px] tracking-wider border-b border-[#E5DAD3] font-semibold">
+            <thead className="bg-canvas text-muted uppercase text-[10px] tracking-wider border-b border-line font-semibold">
               <tr>
                 <th className="py-3 px-3">OP / Pedido</th>
                 <th className="py-3 px-3">Cliente</th>
@@ -376,12 +376,12 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                 <th className="py-3 px-3 text-right">Ação</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5DAD3] font-medium text-[#3A3034]">
+            <tbody className="divide-y divide-line font-medium text-ink-soft">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-[#8A7D77] text-xs">
-                    <p className="font-semibold text-[#6E615B] text-sm">Nenhuma Ordem de Produção ativa no momento.</p>
-                    <p className="mt-1 text-[#8A7D77]">Faça o upload do documento PDF da OP para iniciar o fluxo industrial de fábrica.</p>
+                  <td colSpan={9} className="py-12 text-center text-subtle text-xs">
+                    <p className="font-semibold text-muted text-sm">Nenhuma Ordem de Produção ativa no momento.</p>
+                    <p className="mt-1 text-subtle">Faça o upload do documento PDF da OP para iniciar o fluxo industrial de fábrica.</p>
                   </td>
                 </tr>
               ) : (
@@ -390,7 +390,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                 return (
                   <tr
                     key={op.id}
-                    className="hover:bg-[#F2EBE6] transition-colors cursor-pointer"
+                    className="hover:bg-hover transition-colors cursor-pointer"
                     onClick={() => onSelectOp(op.id)}
                   >
                     <td className="py-3 px-3">
@@ -403,50 +403,50 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                           className="shrink-0 shadow-2xs"
                         />
                         <div>
-                          <div className="font-bold text-[#1C1418] font-mono flex items-center gap-1.5">
+                          <div className="font-bold text-ink font-mono flex items-center gap-1.5">
                             #{op.opNumber}
                           </div>
-                          <div className="text-[10px] text-[#6E615B] font-mono">{op.orderNumber}</div>
+                          <div className="text-[10px] text-muted font-mono">{op.orderNumber}</div>
                         </div>
                       </div>
                     </td>
 
-                    <td className="py-3 px-3 font-semibold text-[#1C1418]">{op.client}</td>
+                    <td className="py-3 px-3 font-semibold text-ink">{op.client}</td>
 
                     <td className="py-3 px-3">
-                      <div className="text-[#1C1418]">{op.productName}</div>
-                      <div className="text-[10px] text-[#6E615B]">
+                      <div className="text-ink">{op.productName}</div>
+                      <div className="text-[10px] text-muted">
                         {op.material} {op.grammage}g • {op.dimensions.width}x{op.dimensions.height}
                         {op.dimensions.gusset ? `+${op.dimensions.gusset}` : ''}mm
                       </div>
                     </td>
 
                     <td className="py-3 px-3 font-mono">
-                      <div className="text-[#1C1418] font-bold">
+                      <div className="text-ink font-bold">
                         {op.targetQuantity.toLocaleString('pt-BR')} {op.unit}
                       </div>
-                      <div className="text-[10px] text-emerald-400">
+                      <div className="text-[10px] text-emerald-700">
                         Saldo: {(op.currentGoodQuantity || op.targetQuantity).toLocaleString('pt-BR')} un
                       </div>
                     </td>
 
                     <td className="py-3 px-3 font-mono">
                       {op.totalLosses > 0 ? (
-                        <span className="text-rose-400 font-bold px-1.5 py-0.5 rounded bg-rose-950/60 border border-rose-800/40 text-[11px]">
+                        <span className="text-rose-700 font-bold px-1.5 py-0.5 rounded bg-rose-50/60 border border-rose-200/40 text-[11px]">
                           -{op.totalLosses.toLocaleString('pt-BR')} un (
                           {((op.totalLosses / op.targetQuantity) * 100).toFixed(1)}%)
                         </span>
                       ) : (
-                        <span className="text-[#8A7D77]">0 un</span>
+                        <span className="text-subtle">0 un</span>
                       )}
                     </td>
 
                     <td className="py-3 px-3">
-                      <div className="font-semibold text-amber-300 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                      <div className="font-semibold text-amber-700 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-700"></span>
                         {currentStep?.processName || 'Roteiro'}
                       </div>
-                      <div className="text-[10px] text-[#6E615B] font-mono">
+                      <div className="text-[10px] text-muted font-mono">
                         {currentStep?.assignedMachineName}
                       </div>
                     </td>
@@ -454,7 +454,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1.5">
                         <PriorityBadge priority={op.priority} />
-                        <span className="text-[10px] text-[#6E615B] font-mono">
+                        <span className="text-[10px] text-muted font-mono">
                           {op.safetyMarginHours > 0
                             ? `+${op.safetyMarginHours}h margem`
                             : `${op.safetyMarginHours}h crítico`}
@@ -472,7 +472,7 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
                           e.stopPropagation();
                           onSelectOp(op.id);
                         }}
-                        className="px-2.5 py-1 rounded bg-[#F2EBE6] hover:bg-[#E8DED8] text-amber-400 font-semibold text-xs border border-[#E5DAD3]"
+                        className="px-2.5 py-1 rounded bg-hover hover:bg-line text-amber-700 font-semibold text-xs border border-line"
                       >
                         Ver Roteiro
                       </button>
@@ -491,23 +491,23 @@ export const FactoryOverview: React.FC<FactoryOverviewProps> = ({
 export const PriorityBadge: React.FC<{ priority: PriorityLevel }> = ({ priority }) => {
   if (priority === 'VERDE') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600/20 text-emerald-700 border border-emerald-600/40">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-700"></span>
         VERDE
       </span>
     );
   }
   if (priority === 'AMARELO') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 border border-amber-500/40">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-700"></span>
         AMARELO
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
-      <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600/20 text-rose-700 border border-rose-600/40 animate-pulse">
+      <span className="w-1.5 h-1.5 rounded-full bg-rose-700"></span>
       VERMELHO
     </span>
   );

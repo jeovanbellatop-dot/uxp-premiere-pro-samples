@@ -585,9 +585,13 @@ class MesStore {
             // Filtro final defensivo: nenhuma string Base64 ou campo textual
             // gigante pode acompanhar a OP no payload do Firestore, mesmo que
             // venha de um formato legado ou de uma nova fonte de análise.
+            // Miniaturas e prévias compactas (data:image < 240 KB) seguem: o servidor as aceita
+            // e é assim que as máquinas recebem a foto do layout.
+            const sentLocal = JSON.stringify(order);
             let serialized = JSON.stringify(firestoreOrder, (_key, value) => {
               if (typeof value !== 'string') return value;
-              if (value.startsWith('data:') || value.length > 250 * 1024) return undefined;
+              if (value.length > 240 * 1024) return undefined;
+              if (value.startsWith('data:') && !value.startsWith('data:image')) return undefined;
               return value;
             });
             const byteSize = typeof Blob !== "undefined" ? new Blob([serialized]).size : serialized.length;
@@ -624,11 +628,18 @@ class MesStore {
               const json = await detail.json();
               const remote = json.data || json;
               const index = this.orders.findIndex(o => o.id === order.id);
-              if (index >= 0 && JSON.stringify(this.orders[index]) === serialized && remote?.id && Array.isArray(remote.steps)) {
-                this.orders[index] = remote;
-                this.pendingOrderPushIds.delete(order.id);
+              if (index >= 0 && remote?.id && Array.isArray(remote.steps)) {
+                if (JSON.stringify(this.orders[index]) === sentLocal) {
+                  // Ninguém mexeu aqui desde o envio: vale a versão do servidor.
+                  const adopted = this.keepLocalMedia(remote, this.orders[index]);
+                  this.orders[index] = adopted;
+                  this.pendingOrderPushIds.delete(order.id);
+                  this.orderShadow.set(adopted.id, this.serializeOrderForShadow(adopted));
+                } else {
+                  // Houve nova ação local depois do envio: ela vai no próximo envio, sobre a versão atual.
+                  this.ordersNeedResend = true;
+                }
                 this.orderBaseVersions.set(remote.id, remote.updatedAt || '');
-                this.orderShadow.set(remote.id, this.serializeOrderForShadow(remote));
                 this.applyingRemoteSharedData = true;
                 try { this.saveToStorage(); } finally { this.applyingRemoteSharedData = false; }
               }
@@ -650,12 +661,18 @@ class MesStore {
             if (!confirmed?.id || !Array.isArray(confirmed.steps)) throw new Error('Resposta de confirmação inválida.');
             this.orderBaseVersions.set(order.id, confirmed.updatedAt || '');
             const index = this.orders.findIndex(o => o.id === order.id);
-            if (index >= 0 && JSON.stringify(this.orders[index]) === serialized) {
-              this.orders[index] = confirmed;
+            if (index >= 0 && JSON.stringify(this.orders[index]) === sentLocal) {
+              // Gravado como enviado: para de reenviar. Antes a comparação era com a versão
+              // sem imagens, nunca batia e o aparelho reenviava a OP sem parar, criando
+              // versões novas que faziam o servidor recusar as gravações dos outros aparelhos.
+              const current = this.orders[index];
+              current.updatedAt = confirmed.updatedAt || current.updatedAt;
               this.pendingOrderPushIds.delete(order.id);
-              this.orderShadow.set(order.id, this.serializeOrderForShadow(confirmed));
+              this.orderShadow.set(order.id, this.serializeOrderForShadow(current));
               this.applyingRemoteSharedData = true;
               try { this.saveToStorage(); } finally { this.applyingRemoteSharedData = false; }
+            } else if (index >= 0) {
+              this.ordersNeedResend = true;
             }
           })
         )
@@ -682,7 +699,14 @@ class MesStore {
           .catch(() => {
             // Guarda defensiva: a fila permanece pendente até confirmação.
           })
-          .finally(() => { this.ordersPushInFlight = false; this.persistSyncState(); })
+          .finally(() => {
+            this.ordersPushInFlight = false;
+            this.persistSyncState();
+            if (this.ordersNeedResend && this.pendingOrderPushIds.size > 0) {
+              this.ordersNeedResend = false;
+              this.syncOrdersToBackend();
+            }
+          })
       } catch {
         // Garantia absoluta de não lançamento de erros
       }
@@ -802,7 +826,7 @@ class MesStore {
       }
 
       // Sem edição pendente, a versão confirmada pelo servidor é a fonte da verdade.
-      mergedOrders.push(remote);
+      mergedOrders.push(this.keepLocalMedia(remote, localOrder));
       this.orderBaseVersions.set(remote.id, remote.updatedAt || '');
     }
 
@@ -1192,6 +1216,19 @@ class MesStore {
   }
 
   /** Serializa a OP ignorando o próprio carimbo, para detectar mudança real de conteúdo. */
+  private ordersNeedResend = false;
+
+  /** Versão do servidor, mantendo as imagens que só este aparelho tem (o servidor não guarda prévias grandes). */
+  private keepLocalMedia(remote: ProductionOrder, local: ProductionOrder): ProductionOrder {
+    const merged: any = { ...remote };
+    for (const key of ['layoutImage', 'layoutPreviewImage', 'productThumbnail', 'layoutImages'] as const) {
+      const r = (remote as any)[key];
+      const l = (local as any)[key];
+      if ((r === undefined || r === null || r === '') && l) merged[key] = l;
+    }
+    return merged as ProductionOrder;
+  }
+
   private serializeOrderForShadow(order: ProductionOrder): string {
     const { updatedAt: _ignored, safetyMarginHours, estimatedCompletionDate, priority, ...rest } = order as any;
     return JSON.stringify(order.manualPriorityOverride ? { ...rest, priority } : rest);
@@ -2646,10 +2683,14 @@ class MesStore {
           normalizeUsername(u.name) === norm
       );
 
+      // Escritório: Administração e PCP entram pelo mesmo card.
       const isAdministrator =
         user &&
         user.isActive !== false &&
-        (user.role === 'ADMIN' || (user.role as string) === 'MASTER' || (Array.isArray(user.sectors) && user.sectors.includes('ADMIN')));
+        (user.role === 'ADMIN' ||
+          (user.role as string) === 'MASTER' ||
+          user.role === 'PCP' ||
+          (Array.isArray(user.sectors) && (user.sectors.includes('ADMIN') || user.sectors.includes('PCP'))));
 
       if (!user || !isAdministrator) {
         this.recordFailedAttempt(norm);
@@ -3750,6 +3791,17 @@ class MesStore {
       );
     }
 
+    // Uma OP por vez em cada máquina: sem isso a OP que estava rodando sumia da tela.
+    if (machine && machine.currentOperationId && machine.currentOperationId !== step.id) {
+      const busyOrder = this.orders.find((o) => o.steps.some((s) => s.id === machine.currentOperationId));
+      const busyStep = busyOrder?.steps.find((s) => s.id === machine.currentOperationId);
+      if (busyStep && busyStep.status !== 'FINALIZADA') {
+        throw new Error(
+          `A ${machine.name} já está com a OP ${busyOrder!.opNumber} ${busyStep.status === 'PAUSADA' ? 'pausada' : 'em produção'}. Finalize-a antes de iniciar outra.`
+        );
+      }
+    }
+
     // Rule: Must have received quantity released from previous step!
     if (step.receivedQuantity <= 0 && step.sequenceIndex > 0) {
       throw new Error(
@@ -4158,6 +4210,12 @@ class MesStore {
     step.assignedMachineId = newMachine.id;
     step.assignedMachineName = newMachine.name;
     step.needsMachineAllocation = undefined;
+    // A seleção feita por outra máquina do Corte e Solda deixa de valer com a troca do PCP.
+    step.claimedByMachineId = undefined;
+    step.claimedByMachineName = undefined;
+    step.claimedByOperatorId = undefined;
+    step.claimedByOperatorName = undefined;
+    step.claimedAt = undefined;
 
     this.logAudit(
       'ALTERACAO_MAQUINA',

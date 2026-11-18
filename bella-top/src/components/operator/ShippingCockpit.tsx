@@ -70,14 +70,14 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl border border-[#E5DAD3] bg-white p-5 shadow-xs">
+      <section className="rounded-2xl border border-line bg-white p-5 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-pink-50 border border-pink-200 text-[#E30A78]">
+          <div className="p-3 rounded-2xl bg-pink-50 border border-pink-200 text-brand">
             <Truck className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-[#1C1418]">Embarque</h2>
-            <p className="text-xs text-[#6E615B]">Nota fiscal, transportadora e embarque dos pedidos que saíram da Expedição.</p>
+            <h2 className="text-xl font-bold text-ink">Embarque</h2>
+            <p className="text-xs text-muted">Nota fiscal, transportadora e embarque dos pedidos que saíram da Expedição.</p>
           </div>
         </div>
 
@@ -88,23 +88,23 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
               onClick={() => setTab(id)}
               className={
                 'rounded-2xl border px-3 py-3 text-left cursor-pointer transition-colors ' +
-                (tab === id ? 'border-[#E30A78] bg-pink-50 text-[#B30A5C]' : 'border-[#E5DAD3] bg-[#FAF5F1] text-[#3A3034] hover:bg-white')
+                (tab === id ? 'border-brand bg-pink-50 text-brand-dark' : 'border-line bg-canvas text-ink-soft hover:bg-white')
               }
             >
               <Icon className="w-4 h-4" />
-              <span className="block text-xs font-black mt-1">{label}</span>
-              <span className="block text-2xl font-black leading-none mt-1">{count(id)}</span>
+              <span className="block text-xs font-bold mt-1">{label}</span>
+              <span className="block text-2xl font-bold leading-none mt-1">{count(id)}</span>
             </button>
           ))}
         </div>
 
         <div className="mt-4 relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9A8B84]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por OP, cliente ou nota fiscal"
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] text-sm focus:border-[#E30A78] focus:bg-white focus:outline-none"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-line bg-canvas text-sm focus:border-brand focus:bg-white focus:outline-none"
           />
         </div>
       </section>
@@ -113,7 +113,7 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
         <div
           className={
             'p-4 rounded-2xl border text-sm font-bold ' +
-            (message.ok ? 'bg-[#E8F7EE] border-[#7BC79A] text-[#14532D]' : 'bg-[#FDECEF] border-[#F2A7B5] text-[#7F1D2D]')
+            (message.ok ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-rose-50 border-rose-300 text-rose-900')
           }
         >
           {message.text}
@@ -121,10 +121,10 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
       )}
 
       {list.length === 0 ? (
-        <div className="rounded-3xl border border-[#E5DAD3] bg-white p-12 text-center">
-          <PackageCheck className="w-12 h-12 text-[#9A8B84] mx-auto opacity-60" />
-          <p className="font-bold mt-3 text-[#1C1418]">Nenhum pedido nesta etapa</p>
-          <p className="text-sm text-[#8A7D77] mt-1">
+        <div className="rounded-2xl border border-line bg-white p-12 text-center">
+          <PackageCheck className="w-12 h-12 text-faint mx-auto opacity-60" />
+          <p className="font-bold mt-3 text-ink">Nenhum pedido nesta etapa</p>
+          <p className="text-sm text-subtle mt-1">
             {tab === 'EMITIR_NF' ? 'Quando o Carlos registrar as caixas de uma OP, ela aparece aqui.' : 'Nada por aqui agora.'}
           </p>
         </div>
@@ -134,7 +134,7 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
             const packing = order.packing!;
             const shipping = order.shipping!;
             return (
-              <article key={order.id} className="rounded-3xl border border-[#E5DAD3] bg-white p-5 shadow-xs space-y-4">
+              <article key={order.id} className="rounded-2xl border border-line bg-white p-5 shadow-xs space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <button onClick={() => onSelectOp?.(order.id)} className="flex items-center gap-3 text-left cursor-pointer">
                     <OpProductThumbnail
@@ -145,17 +145,17 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                       interactive={false}
                     />
                     <div>
-                      <h3 className="text-lg font-black text-[#1C1418]">OP #{order.opNumber}</h3>
-                      <p className="text-sm text-[#3A3034] font-semibold">{order.client}</p>
-                      <p className="text-xs text-[#8A7D77]">
+                      <h3 className="text-lg font-bold text-ink">OP #{order.opNumber}</h3>
+                      <p className="text-sm text-ink-soft font-semibold">{order.client}</p>
+                      <p className="text-xs text-subtle">
                         {order.productName} · Pedido {order.orderNumber}
                       </p>
                     </div>
                   </button>
-                  <div className="text-right text-xs text-[#6E615B]">
+                  <div className="text-right text-xs text-muted">
                     {shipping.notaFiscal && (
                       <p>
-                        NF <strong className="text-[#1C1418]">{shipping.notaFiscal}</strong>
+                        NF <strong className="text-ink">{shipping.notaFiscal}</strong>
                       </p>
                     )}
                     {shipping.embarcadoEm && <p>Embarcado em {fmtDate(shipping.embarcadoEm)}</p>}
@@ -164,13 +164,13 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                 </div>
 
                 {/* Detalhes das caixas que vieram da Expedição */}
-                <div className="rounded-2xl bg-[#FAF5F1] border border-[#E5DAD3] p-3">
-                  <div className="flex items-center gap-2 text-xs font-black text-[#6E615B] uppercase">
+                <div className="rounded-2xl bg-canvas border border-line p-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-muted uppercase">
                     <Scale className="w-4 h-4" /> Caixas (pesagem de {packing.registradoPor}, {fmtDate(packing.registradoEm)})
                   </div>
                   <table className="w-full mt-2 text-sm">
                     <thead>
-                      <tr className="text-left text-[11px] text-[#8A7D77]">
+                      <tr className="text-left text-[11px] text-subtle">
                         <th className="font-bold py-1">Caixas</th>
                         <th className="font-bold py-1">Peso de cada</th>
                         <th className="font-bold py-1">Peças em cada</th>
@@ -179,7 +179,7 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                     </thead>
                     <tbody>
                       {packing.linhas.map((l, i) => (
-                        <tr key={i} className="border-t border-[#E5DAD3] text-[#1C1418]">
+                        <tr key={i} className="border-t border-line text-ink">
                           <td className="py-1.5 font-bold">{l.caixas}</td>
                           <td className="py-1.5">{l.pesoKg.toLocaleString('pt-BR')} kg</td>
                           <td className="py-1.5">{l.pecasPorCaixa.toLocaleString('pt-BR')}</td>
@@ -189,7 +189,7 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                           </td>
                         </tr>
                       ))}
-                      <tr className="border-t-2 border-[#1C1418] font-black text-[#1C1418]">
+                      <tr className="border-t-2 border-ink font-bold text-ink">
                         <td className="py-1.5">{packing.totalCaixas}</td>
                         <td className="py-1.5" colSpan={2}>Total</td>
                         <td className="py-1.5 text-right">
@@ -208,11 +208,11 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                       onChange={(e) => setNfInput({ ...nfInput, [order.id]: e.target.value })}
                       placeholder="Número da nota fiscal"
                       aria-label={`Número da nota fiscal da OP ${order.opNumber}`}
-                      className="flex-1 px-3 py-3 rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] text-sm font-bold focus:border-[#E30A78] focus:bg-white focus:outline-none"
+                      className="flex-1 px-3 py-3 rounded-xl border border-line bg-canvas text-sm font-bold focus:border-brand focus:bg-white focus:outline-none"
                     />
                     <button
                       onClick={() => run(() => registerInvoice(order.id, nfInput[order.id] || ''), `Nota fiscal registrada na OP ${order.opNumber}. Ela passou para "Embarque".`)}
-                      className="min-h-12 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 cursor-pointer"
+                      className="min-h-12 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <FileText className="w-4 h-4" /> REGISTRAR NOTA FISCAL
                     </button>
@@ -221,13 +221,13 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
 
                 {shipping.etapa === 'EMBARQUE' && (
                   <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                    <label className="flex-1 text-xs font-bold text-[#6E615B]">
+                    <label className="flex-1 text-xs font-bold text-muted">
                       Data e hora em que a carga saiu
                       <input
                         type="datetime-local"
                         value={shipInput[order.id] || nowLocalInput()}
                         onChange={(e) => setShipInput({ ...shipInput, [order.id]: e.target.value })}
-                        className="mt-1 w-full px-3 py-3 rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] text-sm font-bold text-[#1C1418] focus:border-[#E30A78] focus:bg-white focus:outline-none"
+                        className="mt-1 w-full px-3 py-3 rounded-xl border border-line bg-canvas text-sm font-bold text-ink focus:border-brand focus:bg-white focus:outline-none"
                       />
                     </label>
                     <button
@@ -237,7 +237,7 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                           `Embarque da OP ${order.opNumber} registrado. Ela passou para "Pós-embarque".`
                         )
                       }
-                      className="min-h-12 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black flex items-center justify-center gap-2 cursor-pointer sm:self-end"
+                      className="min-h-12 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer sm:self-end"
                     >
                       <Truck className="w-4 h-4" /> CONFIRMAR EMBARQUE
                     </button>
@@ -250,14 +250,14 @@ export const ShippingCockpit: React.FC<ShippingCockpitProps> = ({ onSelectOp }) 
                       if (!window.confirm(`Concluir e encerrar a OP ${order.opNumber}? Ela sai das pendências e fica só no histórico.`)) return;
                       run(() => concludeShipping(order.id), `OP ${order.opNumber} concluída e encerrada. Ela está no Histórico.`);
                     }}
-                    className="w-full min-h-12 rounded-xl bg-[#1C1418] hover:bg-[#3A3034] text-white text-sm font-black flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full min-h-12 rounded-xl bg-ink hover:bg-ink-soft text-white text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <CheckCircle2 className="w-4 h-4" /> CONCLUIR E ENCERRAR
                   </button>
                 )}
 
                 {shipping.etapa === 'CONCLUIDO' && (
-                  <p className="text-xs text-[#6E615B]">
+                  <p className="text-xs text-muted">
                     NF por {shipping.nfRegistradaPor} · Embarque por {shipping.embarqueRegistradoPor} · Encerrado por {shipping.concluidoPor}
                   </p>
                 )}

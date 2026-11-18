@@ -304,19 +304,19 @@ export const UserManagementView: React.FC = () => {
       case 'ADMIN':
         return <span key={code} className="px-2 py-0.5 bg-brand-soft/40 text-brand-dark border border-brand-soft rounded text-[11px] font-medium">Admin</span>;
       case 'PCP':
-        return <span key={code} className="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[11px] font-medium">PCP</span>;
+        return <span key={code} className="px-2 py-0.5 bg-blue-600/10 text-blue-700 border border-blue-600/20 rounded text-[11px] font-medium">PCP</span>;
       case 'REFILE':
         return <span key={code} className="px-2 py-0.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded text-[11px] font-medium">Refile</span>;
       case 'FLEXOGRAFIA':
-        return <span key={code} className="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded text-[11px] font-medium">Flexo</span>;
+        return <span key={code} className="px-2 py-0.5 bg-purple-500/10 text-purple-800 border border-purple-500/20 rounded text-[11px] font-medium">Flexo</span>;
       case 'ESTAMPARIA':
-        return <span key={code} className="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[11px] font-medium">Estamparia</span>;
+        return <span key={code} className="px-2 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded text-[11px] font-medium">Estamparia</span>;
       case 'CORTE_SOLDA':
-        return <span key={code} className="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-[11px] font-medium">Corte & Solda</span>;
+        return <span key={code} className="px-2 py-0.5 bg-rose-600/10 text-rose-700 border border-rose-600/20 rounded text-[11px] font-medium">Corte & Solda</span>;
       case 'ALCA':
-        return <span key={code} className="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded text-[11px] font-medium">Alça</span>;
+        return <span key={code} className="px-2 py-0.5 bg-sky-500/10 text-sky-700 border border-sky-500/20 rounded text-[11px] font-medium">Alça</span>;
       case 'EXPEDICAO':
-        return <span key={code} className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[11px] font-medium">Expedição</span>;
+        return <span key={code} className="px-2 py-0.5 bg-emerald-600/10 text-emerald-700 border border-emerald-600/20 rounded text-[11px] font-medium">Expedição</span>;
       default:
         return <span key={code} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[11px]">{code}</span>;
     }
@@ -326,8 +326,8 @@ export const UserManagementView: React.FC = () => {
     <div id="user_management_view" className="space-y-6">
       {/* Notificação de Sucesso */}
       {actionSuccessMessage && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-sm flex items-center gap-2.5 animate-in fade-in duration-200 shadow-lg">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="p-4 bg-emerald-600/10 border border-emerald-600/30 rounded-xl text-emerald-700 text-sm flex items-center gap-2.5 animate-in fade-in duration-200 shadow-sm">
+          <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
           <span>{actionSuccessMessage}</span>
         </div>
       )}
@@ -355,10 +355,10 @@ export const UserManagementView: React.FC = () => {
               id="btn_open_clear_history"
               type="button"
               onClick={() => setIsClearHistoryModalOpen(true)}
-              className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+              className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-medium text-xs sm:text-sm rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer"
               title="Limpar histórico de testes, auditoria, alertas e OPs"
             >
-              <Trash2 className="w-4 h-4 text-rose-600" />
+              <Trash2 className="w-4 h-4 text-rose-700" />
               <span>Limpar Histórico do Sistema</span>
             </button>
           )}
@@ -366,7 +366,7 @@ export const UserManagementView: React.FC = () => {
           <button
             id="btn_create_new_user"
             onClick={handleOpenCreate}
-            className="px-4 py-2.5 bg-brand hover:bg-brand-dark text-white font-medium text-sm rounded-xl shadow-lg shadow-brand/20 flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-brand hover:bg-brand-dark text-white font-medium text-sm rounded-xl shadow-sm shadow-brand/20 flex items-center gap-2 transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>Novo Acesso</span>
@@ -376,10 +376,10 @@ export const UserManagementView: React.FC = () => {
 
       {/* Alerta de Sincronização Local */}
       {users.some((u) => u.syncedWithFirestore === false) && (
-        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex items-start gap-3 text-amber-900 text-xs shadow-xs animate-in fade-in">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="bg-amber-50 border border-amber-700 rounded-2xl p-4 flex items-start gap-3 text-amber-800 text-xs shadow-xs animate-in fade-in">
+          <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <strong className="block font-bold text-amber-950 text-sm">
+            <strong className="block font-bold text-amber-50 text-sm">
               Aviso de Sincronização: Usuário(s) Salvo(s) Apenas Localmente
             </strong>
             <p className="text-amber-800 leading-relaxed">
@@ -542,24 +542,24 @@ export const UserManagementView: React.FC = () => {
                       <td className="py-3.5 px-4">
                         {isActive ? (
                           <div className="flex flex-col items-start gap-1">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-medium">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600/10 text-emerald-700 border border-emerald-600/20 rounded-full text-xs font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-700 animate-pulse" />
                               ATIVO
                             </span>
                             {user.syncedWithFirestore === false && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded text-[10px] font-bold" title="Salvo apenas localmente neste dispositivo">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-700 rounded text-[10px] font-bold" title="Salvo apenas localmente neste dispositivo">
                                 ⚠️ Salvo local
                               </span>
                             )}
                           </div>
                         ) : (
                           <div className="flex flex-col items-start gap-1">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full text-xs font-medium">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-600/10 text-rose-700 border border-rose-600/20 rounded-full text-xs font-medium">
                               <XCircle className="w-3.5 h-3.5" />
                               INATIVO
                             </span>
                             {user.syncedWithFirestore === false && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded text-[10px] font-bold" title="Salvo apenas localmente neste dispositivo">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-700 rounded text-[10px] font-bold" title="Salvo apenas localmente neste dispositivo">
                                 ⚠️ Salvo local
                               </span>
                             )}
@@ -592,7 +592,7 @@ export const UserManagementView: React.FC = () => {
                               setConfirmResetPassword('');
                               setFormError(null);
                             }}
-                            className="p-1.5 hover:bg-brand-soft/20 text-slate-500 hover:text-amber-500 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 hover:bg-brand-soft/20 text-slate-500 hover:text-brand rounded-lg transition-colors cursor-pointer"
                             title="Redefinir Senha"
                           >
                             <KeyRound className="w-4 h-4" />
@@ -603,8 +603,8 @@ export const UserManagementView: React.FC = () => {
                               onClick={() => handleToggleStatus(user)}
                               className={`p-1.5 hover:bg-brand-soft/20 rounded-lg transition-colors cursor-pointer ${
                                 isActive
-                                  ? 'text-slate-500 hover:text-rose-500'
-                                  : 'text-slate-500 hover:text-emerald-500'
+                                  ? 'text-slate-500 hover:text-rose-600'
+                                  : 'text-slate-500 hover:text-emerald-600'
                               }`}
                               title={isActive ? 'Desativar Acesso' : 'Reativar Acesso'}
                             >
@@ -626,7 +626,7 @@ export const UserManagementView: React.FC = () => {
                               className={`p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer ${
                                 isCurrentAuthUser
                                   ? 'text-slate-300 cursor-not-allowed opacity-30'
-                                  : 'text-slate-500 hover:text-rose-600'
+                                  : 'text-slate-500 hover:text-rose-700'
                               }`}
                               title={
                                 isCurrentAuthUser
@@ -666,8 +666,8 @@ export const UserManagementView: React.FC = () => {
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="mb-4 p-3 bg-rose-600/10 border border-rose-600/30 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
@@ -793,7 +793,7 @@ export const UserManagementView: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                   <span>MÁQUINAS AUTORIZADAS</span>
-                  <span className="text-[10px] text-amber-400 font-mono">
+                  <span className="text-[10px] text-amber-700 font-mono">
                     {formData.authorizedMachineIds?.includes('*')
                       ? 'Todas as máquinas'
                       : `${formData.authorizedMachineIds?.length || 0} máquina(s)`}
@@ -805,13 +805,13 @@ export const UserManagementView: React.FC = () => {
                     onClick={() => toggleMachineSelection('*')}
                     className={`w-full p-2 rounded-lg border text-left text-xs font-medium transition-all flex items-center justify-between ${
                       formData.authorizedMachineIds?.includes('*')
-                        ? 'bg-amber-500/20 border-amber-500/60 text-amber-300'
+                        ? 'bg-brand/10 border-brand/50 text-brand-dark'
                         : 'bg-white border-slate-200 text-slate-500 hover:text-ink'
                     }`}
                   >
                     <span>✦ Todas as máquinas dos setores autorizados</span>
                     {formData.authorizedMachineIds?.includes('*') && (
-                      <Check className="w-3.5 h-3.5 text-amber-400" />
+                      <Check className="w-3.5 h-3.5 text-amber-700" />
                     )}
                   </button>
                   {machines.map((machine) => {
@@ -874,7 +874,7 @@ export const UserManagementView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand hover:bg-brand-dark text-white text-xs rounded-xl font-medium shadow-lg shadow-brand/20"
+                  className="px-5 py-2 bg-brand hover:bg-brand-dark text-white text-xs rounded-xl font-medium shadow-sm shadow-brand/20"
                 >
                   Salvar Usuário
                 </button>
@@ -902,8 +902,8 @@ export const UserManagementView: React.FC = () => {
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="mb-4 p-3 bg-rose-600/10 border border-rose-600/30 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
@@ -996,7 +996,7 @@ export const UserManagementView: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                   <span>MÁQUINAS AUTORIZADAS</span>
-                  <span className="text-[10px] text-amber-400 font-mono">
+                  <span className="text-[10px] text-amber-700 font-mono">
                     {formData.authorizedMachineIds?.includes('*')
                       ? 'Todas as máquinas'
                       : `${formData.authorizedMachineIds?.length || 0} máquina(s)`}
@@ -1008,13 +1008,13 @@ export const UserManagementView: React.FC = () => {
                     onClick={() => toggleMachineSelection('*')}
                     className={`w-full p-2 rounded-lg border text-left text-xs font-medium transition-all flex items-center justify-between ${
                       formData.authorizedMachineIds?.includes('*')
-                        ? 'bg-amber-500/20 border-amber-500/60 text-amber-300'
+                        ? 'bg-brand/10 border-brand/50 text-brand-dark'
                         : 'bg-white border-slate-200 text-slate-500 hover:text-ink'
                     }`}
                   >
                     <span>✦ Todas as máquinas dos setores autorizados</span>
                     {formData.authorizedMachineIds?.includes('*') && (
-                      <Check className="w-3.5 h-3.5 text-amber-400" />
+                      <Check className="w-3.5 h-3.5 text-amber-700" />
                     )}
                   </button>
                   {machines.map((machine) => {
@@ -1076,7 +1076,7 @@ export const UserManagementView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand hover:bg-brand-dark text-white text-xs rounded-xl font-medium shadow-lg shadow-brand/20"
+                  className="px-5 py-2 bg-brand hover:bg-brand-dark text-white text-xs rounded-xl font-medium shadow-sm shadow-brand/20"
                 >
                   Atualizar Acesso
                 </button>
@@ -1092,7 +1092,7 @@ export const UserManagementView: React.FC = () => {
           <div className="w-full max-w-md bg-white border border-brand-soft/50 rounded-2xl shadow-xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-5">
               <div className="flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-amber-400" />
+                <KeyRound className="w-5 h-5 text-amber-700" />
                 <h3 className="text-lg font-bold text-ink">Redefinir Senha</h3>
               </div>
               <button
@@ -1109,8 +1109,8 @@ export const UserManagementView: React.FC = () => {
             </p>
 
             {formError && (
-              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="mb-4 p-3 bg-rose-600/10 border border-rose-600/30 rounded-xl text-rose-700 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
@@ -1127,7 +1127,7 @@ export const UserManagementView: React.FC = () => {
                     placeholder="Mínimo 4 caracteres"
                     value={newResetPassword}
                     onChange={(e) => setNewResetPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 pr-10 bg-white border border-slate-200 rounded-xl text-ink text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-3.5 py-2 pr-10 bg-white border border-slate-200 rounded-xl text-ink text-sm focus:outline-none focus:border-brand"
                   />
                   <button
                     type="button"
@@ -1149,7 +1149,7 @@ export const UserManagementView: React.FC = () => {
                   placeholder="Repita a nova senha"
                   value={confirmResetPassword}
                   onChange={(e) => setConfirmResetPassword(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-ink text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-ink text-sm focus:outline-none focus:border-brand"
                 />
               </div>
 
@@ -1163,7 +1163,7 @@ export const UserManagementView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs rounded-xl font-medium shadow-lg shadow-amber-600/20"
+                  className="px-5 py-2 bg-brand hover:bg-brand-dark text-white text-xs rounded-xl font-medium shadow-sm shadow-brand/20"
                 >
                   Redefinir Senha
                 </button>
@@ -1177,9 +1177,9 @@ export const UserManagementView: React.FC = () => {
       {deletingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-white border border-rose-200 rounded-2xl shadow-2xl p-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-100 text-rose-600">
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-100 text-rose-700">
               <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0">
-                <Trash2 className="w-5 h-5 text-rose-600" />
+                <Trash2 className="w-5 h-5 text-rose-700" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-ink leading-tight">Excluir Usuário Permanentemente</h3>
@@ -1202,16 +1202,16 @@ export const UserManagementView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-900">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
+                <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                 <p>
                   <strong>Atenção:</strong> O login e o acesso deste usuário serão permanentemente removidos. O histórico de auditoria e as ordens de produção realizadas anteriormente serão mantidos intactos.
                 </p>
               </div>
 
               {deleteError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs text-rose-700 font-medium">
-                  <XCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs text-rose-800 font-medium">
+                  <XCircle className="w-4 h-4 shrink-0 text-rose-700" />
                   <span>{deleteError}</span>
                 </div>
               )}
@@ -1233,7 +1233,7 @@ export const UserManagementView: React.FC = () => {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 disabled:opacity-50 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 active:bg-rose-200 disabled:opacity-50 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 {isDeleting ? (
                   <>

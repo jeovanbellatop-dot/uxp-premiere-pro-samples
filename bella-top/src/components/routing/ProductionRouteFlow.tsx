@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Cpu,
   UserCheck,
-  Send,
   Sparkles,
   Flame,
   ShieldCheck,
@@ -50,11 +49,20 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
     finishOperation,
     updateStepMachine,
     setManualPriority,
-    dispatchOp,
     auditLogs
   } = useMesStore();
 
   const [activePauseStepId, setActivePauseStepId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  // As ações da tela mostram o motivo quando o sistema recusa (máquina ocupada, em manutenção...).
+  const guard = (fn: () => unknown) => {
+    setActionError(null);
+    try {
+      fn();
+    } catch (err: any) {
+      setActionError(err?.message || 'Não foi possível concluir a ação.');
+    }
+  };
   const [activeFinishStepId, setActiveFinishStepId] = useState<string | null>(null);
   const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -109,7 +117,7 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. Header Card: Onde a OP Está & Métricas Gerais */}
-      <div className="rounded-2xl border border-[#E5DAD3] bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <OpProductThumbnail
@@ -118,50 +126,50 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
               opNumber={order.opNumber}
               size="xl"
               onClick={() => setIsLayoutModalOpen(true)}
-              className="shadow-sm border-2 border-[#E30A78]/20 shrink-0"
+              className="shadow-sm border-2 border-brand/20 shrink-0"
             />
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-black tracking-widest text-[#B30A5C] font-mono">
+                <span className="text-xs font-bold tracking-widest text-brand-dark font-mono">
                   ROTEIRO OPERACIONAL DA OP
                 </span>
-                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-pink-50 text-[#B30A5C] border border-pink-200">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-pink-50 text-brand-dark border border-pink-200">
                   OP #{order.opNumber}
                 </span>
                 <span
-                  className={`text-xs font-mono font-extrabold px-2.5 py-0.5 rounded-full ${
+                  className={`text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full ${
                     order.status === 'PRODUCAO_CONCLUIDA' || order.status === 'FINALIZADA'
-                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-700'
                       : order.status === 'EM_PRODUCAO'
-                      ? 'bg-pink-100 text-[#B30A5C] border border-pink-300 animate-pulse'
+                      ? 'bg-pink-100 text-brand-dark border border-pink-300 animate-pulse'
                       : order.status === 'EXPEDICAO'
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                      : 'bg-[#F2EBE6] text-[#3A3034] border border-[#E5DAD3]'
+                      ? 'bg-blue-100 text-blue-700 border border-blue-700'
+                      : 'bg-hover text-ink-soft border border-line'
                   }`}
                 >
                   {order.status === 'PRODUCAO_CONCLUIDA' ? 'PRODUÇÃO CONCLUÍDA' : order.status}
                 </span>
               </div>
 
-              <h2 className="text-2xl font-black text-[#1C1418] mt-1.5 flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-ink mt-1.5 flex items-center gap-2">
                 <span>{order.productName}</span>
-                <span className="text-sm font-normal text-[#6E615B] font-mono">({order.client})</span>
+                <span className="text-sm font-normal text-muted font-mono">({order.client})</span>
               </h2>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[#6E615B] mt-1">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted mt-1">
                 <span>
-                  Pedido: <strong className="text-[#1C1418] font-mono">{order.orderNumber}</strong>
+                  Pedido: <strong className="text-ink font-mono">{order.orderNumber}</strong>
                 </span>
                 <span>•</span>
                 <span>
-                  Prazo: <strong className="text-[#1C1418]">{new Date(order.deadline).toLocaleDateString('pt-BR')}</strong>
+                  Prazo: <strong className="text-ink">{new Date(order.deadline).toLocaleDateString('pt-BR')}</strong>
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsLayoutModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-50 hover:bg-pink-100 text-[#B30A5C] font-bold text-xs border border-pink-200 transition-colors cursor-pointer ml-1 shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-50 hover:bg-pink-100 text-brand-dark font-bold text-xs border border-pink-200 transition-colors cursor-pointer ml-1 shadow-2xs"
                 >
-                  <Eye className="w-3.5 h-3.5 text-[#E30A78]" />
+                  <Eye className="w-3.5 h-3.5 text-brand" />
                   <span>Ver Layout Técnico Completo</span>
                 </button>
               </div>
@@ -170,29 +178,29 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
           {/* Location Badge (ONDE A OP ESTÁ) */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="bg-[#FAF5F1] p-3 rounded-xl border border-[#E5DAD3] flex items-center gap-3">
+            <div className="bg-canvas p-3 rounded-xl border border-line flex items-center gap-3">
               <div
                 className={`w-3.5 h-3.5 rounded-full shrink-0 ${
                   order.status === 'FINALIZADA' || order.status === 'PRODUCAO_CONCLUIDA'
-                    ? 'bg-emerald-500'
+                    ? 'bg-emerald-600'
                     : currentStep?.status === 'PRODUZINDO'
-                    ? 'bg-emerald-500 animate-ping'
+                    ? 'bg-emerald-600 animate-ping'
                     : currentStep?.status === 'PAUSADA'
                     ? 'bg-amber-500'
-                    : 'bg-blue-500'
+                    : 'bg-blue-600'
                 }`}
               />
               <div>
-                <span className="text-[10px] font-bold text-[#8A7D77] uppercase block">
+                <span className="text-[10px] font-bold text-subtle uppercase block">
                   Localização Atual da OP
                 </span>
-                <span className="text-sm font-extrabold text-[#1C1418] flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-ink flex items-center gap-1.5">
                   {order.status === 'FINALIZADA' || order.status === 'PRODUCAO_CONCLUIDA' ? (
                     '✅ Expedição Finalizada'
                   ) : (
                     <>
                       <span>{currentStep?.processName || 'Em Espera'}</span>
-                      <span className="text-xs font-mono text-amber-600 font-semibold">
+                      <span className="text-xs font-mono text-amber-700 font-semibold">
                         ({currentStep?.assignedMachineName || 'Aguardando'})
                       </span>
                     </>
@@ -203,20 +211,20 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
             {/* PCP Priority Controls */}
             {isPcpOrAdmin && (
-              <div className="flex items-center gap-1 bg-[#FAF5F1] p-1.5 rounded-xl border border-[#E5DAD3]">
+              <div className="flex items-center gap-1 bg-canvas p-1.5 rounded-xl border border-line">
                 {(['VERDE', 'AMARELO', 'VERMELHO'] as PriorityLevel[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => setManualPriority(order.id, p)}
                     title={`Prioridade ${p}`}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-black font-mono transition-all ${
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-all ${
                       order.priority === p
                         ? p === 'VERDE'
-                          ? 'bg-emerald-600 text-white shadow-sm'
+                          ? 'bg-emerald-700 text-white shadow-sm'
                           : p === 'AMARELO'
-                          ? 'bg-amber-500 text-white shadow-sm'
-                          : 'bg-rose-600 text-white shadow-sm'
-                        : 'text-[#6E615B] hover:text-[#1C1418] hover:bg-[#F2EBE6]'
+                          ? 'bg-brand text-white shadow-sm'
+                          : 'bg-rose-700 text-white shadow-sm'
+                        : 'text-muted hover:text-ink hover:bg-hover'
                     }`}
                   >
                     {p === 'VERMELHO' ? 'URGENTE' : p === 'AMARELO' ? 'ALERTA' : 'NORMAL'}
@@ -228,46 +236,46 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
         </div>
 
         {/* Balance & Loss KPI Bar (Regra dos Saldos entre Etapas) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#E5DAD3]">
-          <div className="bg-[#FAF5F1] p-3 rounded-xl border border-[#E5DAD3]">
-            <span className="text-[10px] font-bold text-[#8A7D77] uppercase block">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-line">
+          <div className="bg-canvas p-3 rounded-xl border border-line">
+            <span className="text-[10px] font-bold text-subtle uppercase block">
               1. Quantidade Original (OP)
             </span>
-            <span className="text-lg font-black font-mono text-[#1C1418] block mt-0.5">
+            <span className="text-lg font-bold font-mono text-ink block mt-0.5">
               {order.targetQuantity.toLocaleString('pt-BR')}{' '}
-              <span className="text-xs font-medium text-[#6E615B]">{order.unit}</span>
+              <span className="text-xs font-medium text-muted">{order.unit}</span>
             </span>
           </div>
 
-          <div className="bg-[#FAF5F1] p-3 rounded-xl border border-[#E5DAD3]">
-            <span className="text-[10px] font-bold text-[#8A7D77] uppercase block">
+          <div className="bg-canvas p-3 rounded-xl border border-line">
+            <span className="text-[10px] font-bold text-subtle uppercase block">
               2. Saldo Atual Liberado
             </span>
-            <span className="text-lg font-black font-mono text-emerald-600 block mt-0.5">
+            <span className="text-lg font-bold font-mono text-emerald-700 block mt-0.5">
               {(order.currentGoodQuantity || (order.steps[0]?.status === 'PRONTA' ? order.targetQuantity : 0)).toLocaleString('pt-BR')}{' '}
-              <span className="text-xs font-medium text-[#6E615B]">{order.unit}</span>
+              <span className="text-xs font-medium text-muted">{order.unit}</span>
             </span>
           </div>
 
-          <div className="bg-[#FAF5F1] p-3 rounded-xl border border-[#E5DAD3]">
-            <span className="text-[10px] font-bold text-[#8A7D77] uppercase block">
+          <div className="bg-canvas p-3 rounded-xl border border-line">
+            <span className="text-[10px] font-bold text-subtle uppercase block">
               3. Perdas Acumuladas
             </span>
             <span
-              className={`text-lg font-black font-mono block mt-0.5 ${
-                order.totalLosses > 0 ? 'text-rose-600' : 'text-[#8A7D77]'
+              className={`text-lg font-bold font-mono block mt-0.5 ${
+                order.totalLosses > 0 ? 'text-rose-700' : 'text-subtle'
               }`}
             >
               {order.totalLosses > 0 ? `-${order.totalLosses.toLocaleString('pt-BR')}` : '0'}{' '}
-              <span className="text-xs font-medium text-[#6E615B]">{order.unit}</span>
+              <span className="text-xs font-medium text-muted">{order.unit}</span>
             </span>
           </div>
 
-          <div className="bg-[#FAF5F1] p-3 rounded-xl border border-[#E5DAD3]">
-            <span className="text-[10px] font-bold text-[#8A7D77] uppercase block">
+          <div className="bg-canvas p-3 rounded-xl border border-line">
+            <span className="text-[10px] font-bold text-subtle uppercase block">
               4. Rendimento do Lote
             </span>
-            <span className="text-lg font-black font-mono text-[#1C1418] block mt-0.5">
+            <span className="text-lg font-bold font-mono text-ink block mt-0.5">
               {order.targetQuantity > 0
                 ? `${(((order.targetQuantity - order.totalLosses) / order.targetQuantity) * 100).toFixed(1)}%`
                 : '100%'}
@@ -280,11 +288,11 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
       {order.layoutImage && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-amber-700 flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-amber-600" />
+            <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-amber-700" />
               <span>LAYOUT APROVADO & DESENHO TÉCNICO VINCULADO</span>
             </span>
-            <span className="text-[11px] font-mono font-bold text-amber-700 bg-white px-2.5 py-0.5 rounded-full border border-amber-200">
+            <span className="text-[11px] font-mono font-bold text-amber-800 bg-white px-2.5 py-0.5 rounded-full border border-amber-200">
               Acompanha todas as máquinas
             </span>
           </div>
@@ -299,22 +307,22 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
       )}
 
       {order.aiAnalysis && (
-        <div className="rounded-2xl border border-[#E5DAD3] bg-white p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="rounded-2xl border border-line bg-white p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600/10 text-emerald-700 flex items-center justify-center font-bold">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-[#1C1418]">
+              <span className="font-bold text-ink">
                 Motor de Inteligência OpenAI ({order.aiAnalysis.model || 'GPT-4o'})
               </span>
-              <p className="text-[11px] text-[#6E615B]">
+              <p className="text-[11px] text-muted">
                 Leitura multimodal com {order.aiAnalysis.confidence || 98}% de confiança e roteirização validada pelo Motor Bella Top.
               </p>
             </div>
           </div>
           {order.aiAnalysis.warnings && order.aiAnalysis.warnings.length > 0 && (
-            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
               {order.aiAnalysis.warnings.length} alerta(s) de PCP
             </span>
           )}
@@ -323,37 +331,37 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Visual Spec Card */}
-        <div className="rounded-2xl border border-[#E5DAD3] bg-white p-4 space-y-3">
-          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
+        <div className="rounded-2xl border border-line bg-white p-4 space-y-3">
+          <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">
             FICHA TÉCNICA DO PRODUTO
           </span>
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Material / Gramatura:</span>
-              <span className="font-bold text-[#1C1418]">
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Material / Gramatura:</span>
+              <span className="font-bold text-ink">
                 {order.material} {order.grammage}g ({order.color})
               </span>
             </div>
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Dimensões:</span>
-              <span className="font-bold text-[#1C1418] font-mono">
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Dimensões:</span>
+              <span className="font-bold text-ink font-mono">
                 {order.dimensions?.width || 0} × {order.dimensions?.height || 0}
                 {order.dimensions?.gusset ? ` + ${order.dimensions.gusset}mm fundo` : ' mm'}
               </span>
             </div>
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Tipo de Alça:</span>
-              <span className="font-bold text-[#1C1418]">{order.handleType || 'NÃO APLICÁVEL'}</span>
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Tipo de Alça:</span>
+              <span className="font-bold text-ink">{order.handleType || 'NÃO APLICÁVEL'}</span>
             </div>
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Visor Transparente:</span>
-              <span className={`font-bold ${order.hasVisor ? 'text-blue-600' : 'text-[#6E615B]'}`}>
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Visor Transparente:</span>
+              <span className={`font-bold ${order.hasVisor ? 'text-blue-600' : 'text-muted'}`}>
                 {order.hasVisor ? 'SIM (Com Visor)' : 'NÃO (Sem Visor)'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6E615B]">Cordão / Fio:</span>
-              <span className={`font-bold ${order.hasDrawstring ? 'text-amber-600' : 'text-[#6E615B]'}`}>
+              <span className="text-muted">Cordão / Fio:</span>
+              <span className={`font-bold ${order.hasDrawstring ? 'text-amber-700' : 'text-muted'}`}>
                 {order.hasDrawstring ? 'SIM (Com Cordão)' : 'NÃO'}
               </span>
             </div>
@@ -361,32 +369,32 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
         </div>
 
         {/* Impression Specs */}
-        <div className="rounded-2xl border border-[#E5DAD3] bg-white p-4 space-y-3">
-          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
+        <div className="rounded-2xl border border-line bg-white p-4 space-y-3">
+          <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">
             ESPECIFICAÇÕES DE IMPRESSÃO & ARTE
           </span>
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Processo de Impressão:</span>
-              <span className="font-bold text-[#1C1418] uppercase">
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Processo de Impressão:</span>
+              <span className="font-bold text-ink uppercase">
                 {order.printing?.type || 'SEM IMPRESSÃO'}
               </span>
             </div>
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Nº de Cores:</span>
-              <span className="font-bold text-[#1C1418] font-mono">
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Nº de Cores:</span>
+              <span className="font-bold text-ink font-mono">
                 {order.printing?.colorsCount || 0} Cor(es)
               </span>
             </div>
-            <div className="flex justify-between border-b border-[#FAF5F1] pb-1.5">
-              <span className="text-[#6E615B]">Impressão Frente:</span>
-              <span className="font-medium text-[#1C1418] truncate max-w-[180px]" title={order.printing?.front}>
+            <div className="flex justify-between border-b border-canvas pb-1.5">
+              <span className="text-muted">Impressão Frente:</span>
+              <span className="font-medium text-ink truncate max-w-[180px]" title={order.printing?.front}>
                 {order.printing?.front || '-'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6E615B]">Impressão Verso:</span>
-              <span className="font-medium text-[#1C1418] truncate max-w-[180px]" title={order.printing?.back}>
+              <span className="text-muted">Impressão Verso:</span>
+              <span className="font-medium text-ink truncate max-w-[180px]" title={order.printing?.back}>
                 {order.printing?.back || '-'}
               </span>
             </div>
@@ -394,16 +402,16 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
         </div>
 
         {/* Technical Notes & Safety Margin */}
-        <div className="rounded-2xl border border-[#E5DAD3] bg-white p-4 space-y-3">
-          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
+        <div className="rounded-2xl border border-line bg-white p-4 space-y-3">
+          <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">
             OBSERVAÇÕES TÉCNICAS & CRONOGRAMA
           </span>
-          <p className="text-xs text-[#3A3034] bg-[#FAF5F1] p-2.5 rounded-xl border border-[#E5DAD3] min-h-[60px] italic">
+          <p className="text-xs text-ink-soft bg-canvas p-2.5 rounded-xl border border-line min-h-[60px] italic">
             {order.technicalNotes || 'Nenhuma observação técnica adicional informada na OP.'}
           </p>
-          <div className="flex items-center justify-between text-xs text-[#6E615B] pt-1">
+          <div className="flex items-center justify-between text-xs text-muted pt-1">
             <span>Criada em {new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
-            <span className="font-bold text-emerald-600 font-mono">
+            <span className="font-bold text-emerald-700 font-mono">
               {order.steps.filter((s) => s.status === 'FINALIZADA').length} de {order.steps.length} etapas concluídas
             </span>
           </div>
@@ -414,15 +422,15 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-black text-[#1C1418] flex items-center gap-2">
-              <Layers className="w-5 h-5 text-amber-500" />
+            <h3 className="text-lg font-bold text-ink flex items-center gap-2">
+              <Layers className="w-5 h-5 text-brand" />
               <span>Etapas Sequenciais do Roteiro de Fabricação</span>
             </h3>
-            <p className="text-xs text-[#6E615B] mt-0.5">
+            <p className="text-xs text-muted mt-0.5">
               A saída boa de cada etapa é rigorosamente a entrada da próxima etapa (sem reinvenção de saldos).
             </p>
           </div>
-          <span className="text-xs font-mono font-bold text-[#8A7D77] bg-white px-3 py-1.5 rounded-xl border border-[#E5DAD3]">
+          <span className="text-xs font-mono font-bold text-subtle bg-white px-3 py-1.5 rounded-xl border border-line">
             {order.steps.length} Etapas Definidas
           </span>
         </div>
@@ -445,30 +453,30 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                 <div
                   className={`rounded-2xl border p-4 sm:p-5 transition-all relative overflow-hidden ${
                     isDone
-                      ? 'bg-white border-[#E5DAD3]'
+                      ? 'bg-white border-line'
                       : isProducing
-                      ? 'bg-emerald-50/50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md'
+                      ? 'bg-emerald-50/50 border-emerald-600 ring-2 ring-emerald-600/20 shadow-sm'
                       : isPaused
                       ? 'bg-amber-50/50 border-amber-500 ring-2 ring-amber-500/20'
                       : isReady
-                      ? 'bg-blue-50/40 border-blue-400'
-                      : 'bg-[#FAF5F1]/80 border-[#E5DAD3] opacity-75'
+                      ? 'bg-blue-50/40 border-blue-700'
+                      : 'bg-canvas/80 border-line opacity-75'
                   }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     {/* Left: Sequence Number, Process Name & Machine */}
                     <div className="flex items-start gap-3.5">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm font-mono shrink-0 shadow-sm ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm font-mono shrink-0 shadow-sm ${
                           isDone
-                            ? 'bg-emerald-500 text-white'
+                            ? 'bg-emerald-600 text-white'
                             : isProducing
-                            ? 'bg-emerald-600 text-white animate-pulse'
+                            ? 'bg-emerald-700 text-white animate-pulse'
                             : isPaused
-                            ? 'bg-amber-500 text-white'
+                            ? 'bg-brand text-white'
                             : isReady
                             ? 'bg-blue-600 text-white'
-                            : 'bg-[#E5DAD3] text-[#6E615B]'
+                            : 'bg-line text-muted'
                         }`}
                       >
                         {isDone ? '✓' : idx + 1}
@@ -476,27 +484,27 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-base font-black text-[#1C1418]">
+                          <span className="text-base font-bold text-ink">
                             {step.processName.toUpperCase()}
                           </span>
 
                           {(step.hasCord || (step.processTypeId === 'proc_solda' && order.hasDrawstring)) && (
-                            <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-700">
                               Cordão: SIM (Corte + Solda + Cordão)
                             </span>
                           )}
 
                           <span
-                            className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                            className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                               isDone
-                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-700'
                                 : isProducing
-                                ? 'bg-emerald-100 text-emerald-700 border border-emerald-400 animate-pulse'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-700 animate-pulse'
                                 : isPaused
-                                ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-700'
                                 : isReady
-                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                                : 'bg-[#F2EBE6] text-[#6E615B]'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-700'
+                                : 'bg-hover text-muted'
                             }`}
                           >
                             {isDone
@@ -512,38 +520,38 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                         </div>
 
                         {/* Machine & Assigned Operator */}
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-[#6E615B] mt-1.5">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-muted mt-1.5">
                           {step.processTypeId === 'proc_expedicao' || step.isManual ? (
-                            <span className="flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
-                              <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="flex items-center gap-1 font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                              <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
                               Processo Manual • Expedição
                             </span>
                           ) : (
-                            <span className="flex items-center gap-1 font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                            <span className="flex items-center gap-1 font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
                               <Cpu className="w-3.5 h-3.5" />
                               {step.assignedMachineName}
                             </span>
                           )}
 
                           {step.activeOperatorName ? (
-                            <span className="flex items-center gap-1 font-medium text-[#1C1418]">
-                              <UserCheck className="w-3.5 h-3.5 text-[#8A7D77]" />
+                            <span className="flex items-center gap-1 font-medium text-ink">
+                              <UserCheck className="w-3.5 h-3.5 text-subtle" />
                               Resp: {step.activeOperatorName}
                             </span>
                           ) : step.processTypeId === 'proc_expedicao' || step.isManual ? (
-                            <span className="flex items-center gap-1 font-medium text-[#1C1418]">
-                              <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="flex items-center gap-1 font-medium text-ink">
+                              <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
                               Resp: Carlos
                             </span>
                           ) : (
-                            <span className="text-[#8A7D77]">
+                            <span className="text-subtle">
                               Resp: {step.assignedMachineName.includes('Refiladeira') ? 'Welton' : step.assignedMachineName.includes('Flexografia') ? 'Gabriel' : step.assignedMachineName.includes('Carrossel') ? 'Viola / Toninho' : 'Toninho / Operador'}
                             </span>
                           )}
 
                           {elapsedTime && (
-                            <span className="flex items-center gap-1 font-mono font-bold text-amber-700 bg-white px-2 py-0.5 rounded border border-[#E5DAD3]">
-                              <Clock className="w-3 h-3 text-amber-500" />
+                            <span className="flex items-center gap-1 font-mono font-bold text-amber-800 bg-white px-2 py-0.5 rounded border border-line">
+                              <Clock className="w-3 h-3 text-brand" />
                               {elapsedTime}
                             </span>
                           )}
@@ -552,45 +560,45 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                     </div>
 
                     {/* Middle: Physical Loss & Propagation Balance */}
-                    <div className="flex items-center gap-3 bg-[#FAF5F1] p-3 rounded-xl border border-[#E5DAD3] text-xs font-mono self-stretch lg:self-auto justify-between sm:justify-start">
+                    <div className="flex items-center gap-3 bg-canvas p-3 rounded-xl border border-line text-xs font-mono self-stretch lg:self-auto justify-between sm:justify-start">
                       {/* Received / Entrada */}
                       <div>
-                        <span className="text-[10px] font-bold text-[#8A7D77] uppercase block font-sans">
+                        <span className="text-[10px] font-bold text-subtle uppercase block font-sans">
                           Entrada Recebida
                         </span>
-                        <span className="text-[#1C1418] font-bold text-sm">
+                        <span className="text-ink font-bold text-sm">
                           {step.receivedQuantity.toLocaleString('pt-BR')}{' '}
-                          <span className="text-[10px] text-[#6E615B]">{step.unit}</span>
+                          <span className="text-[10px] text-muted">{step.unit}</span>
                         </span>
                       </div>
 
-                      <ArrowRight className="w-4 h-4 text-[#8A7D77] shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-subtle shrink-0" />
 
                       {/* Loss / Perdas */}
                       <div>
-                        <span className="text-[10px] font-bold text-[#8A7D77] uppercase block font-sans">
+                        <span className="text-[10px] font-bold text-subtle uppercase block font-sans">
                           Perda
                         </span>
                         {step.lossQuantity > 0 ? (
-                          <span className="text-rose-600 font-extrabold text-sm">
+                          <span className="text-rose-700 font-semibold text-sm">
                             -{step.lossQuantity.toLocaleString('pt-BR')}{' '}
-                            <span className="text-[10px] text-rose-500">{step.unit}</span>
+                            <span className="text-[10px] text-rose-600">{step.unit}</span>
                           </span>
                         ) : (
-                          <span className="text-[#8A7D77] font-bold text-sm">0 {step.unit}</span>
+                          <span className="text-subtle font-bold text-sm">0 {step.unit}</span>
                         )}
                       </div>
 
-                      <ArrowRight className="w-4 h-4 text-[#8A7D77] shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-subtle shrink-0" />
 
                       {/* Good Output / Saída Boa */}
                       <div>
-                        <span className="text-[10px] font-bold text-[#8A7D77] uppercase block font-sans">
+                        <span className="text-[10px] font-bold text-subtle uppercase block font-sans">
                           Saída Boa
                         </span>
                         <span
-                          className={`font-black text-sm ${
-                            isDone ? 'text-emerald-700' : 'text-[#8A7D77]'
+                          className={`font-bold text-sm ${
+                            isDone ? 'text-emerald-800' : 'text-subtle'
                           }`}
                         >
                           {isDone
@@ -606,8 +614,8 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                     <div className="flex items-center gap-2 shrink-0">
                       {isReady && (
                         <button
-                          onClick={() => startOperation(step.id, step.assignedMachineId)}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow flex items-center gap-1.5"
+                          onClick={() => guard(() => startOperation(step.id, step.assignedMachineId))}
+                          className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow flex items-center gap-1.5"
                         >
                           <PlayCircle className="w-4 h-4" />
                           <span>INICIAR ETAPA</span>
@@ -618,14 +626,14 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                         <>
                           <button
                             onClick={() => setActivePauseStepId(step.id)}
-                            className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-black text-xs transition-all shadow flex items-center gap-1.5"
+                            className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-700 text-white font-bold text-xs transition-all shadow flex items-center gap-1.5"
                           >
                             <PauseCircle className="w-4 h-4" />
                             <span>PAUSAR</span>
                           </button>
                           <button
                             onClick={() => setActiveFinishStepId(step.id)}
-                            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow flex items-center gap-1.5"
+                            className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow flex items-center gap-1.5"
                           >
                             <CheckCircle2 className="w-4 h-4" />
                             <span>FINALIZAR ETAPA</span>
@@ -636,15 +644,15 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                       {isPaused && (
                         <>
                           <button
-                            onClick={() => resumeOperation(step.id, step.assignedMachineId)}
-                            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow flex items-center gap-1.5"
+                            onClick={() => guard(() => resumeOperation(step.id, step.assignedMachineId))}
+                            className="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow flex items-center gap-1.5"
                           >
                             <PlayCircle className="w-4 h-4" />
                             <span>RETOMAR</span>
                           </button>
                           <button
                             onClick={() => setActiveFinishStepId(step.id)}
-                            className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition-all shadow flex items-center gap-1.5"
+                            className="px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow flex items-center gap-1.5"
                           >
                             <CheckCircle2 className="w-4 h-4" />
                             <span>FINALIZAR ETAPA</span>
@@ -653,11 +661,11 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
                       )}
 
                       {/* PCP machine switcher if not finished and not manual */}
-                      {isPcpOrAdmin && !isDone && step.processTypeId !== 'proc_expedicao' && !step.isManual && (
+                      {isPcpOrAdmin && !isDone && !isProducing && !isPaused && step.processTypeId !== 'proc_expedicao' && !step.isManual && (
                         <select
                           value={step.assignedMachineId || ''}
-                          onChange={(e) => updateStepMachine(step.id, e.target.value)}
-                          className="bg-white border border-[#E5DAD3] text-xs text-[#1C1418] rounded-xl px-2.5 py-2 font-medium focus:border-amber-400"
+                          onChange={(e) => guard(() => updateStepMachine(step.id, e.target.value))}
+                          className="bg-white border border-line text-xs text-ink rounded-xl px-2.5 py-2 font-medium focus:border-brand"
                         >
                           {machines
                             .filter((m) => m.processTypeId === step.processTypeId)
@@ -673,8 +681,8 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
                   {/* Pause Warning if paused */}
                   {isPaused && (
-                    <div className="mt-3 p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-700 text-xs flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <div className="mt-3 p-2.5 rounded-xl bg-amber-100 border border-amber-700 text-amber-800 text-xs flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                       <span>
                         <strong>Etapa Pausada:</strong> {step.lossReason || 'Pausa operacional em andamento.'}
                       </span>
@@ -683,8 +691,8 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
                   {/* Registered Loss Details if finalized with loss */}
                   {isDone && step.lossQuantity > 0 && (
-                    <div className="mt-2.5 pt-2 border-t border-[#FAF5F1] text-[11px] text-[#6E615B] flex flex-wrap items-center gap-3">
-                      <span className="text-rose-600 font-bold">
+                    <div className="mt-2.5 pt-2 border-t border-canvas text-[11px] text-muted flex flex-wrap items-center gap-3">
+                      <span className="text-rose-700 font-bold">
                         ⚠️ Perda registrada: {step.lossQuantity} {step.unit}
                       </span>
                       {step.lossClassification && (
@@ -700,16 +708,16 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
 
                 {/* Arrow connector between steps with propagated balance */}
                 {!isLast && (
-                  <div className="flex items-center justify-center gap-2 py-1 text-xs text-[#8A7D77] font-mono font-bold">
-                    <ArrowDown className="w-4 h-4 text-amber-500" />
+                  <div className="flex items-center justify-center gap-2 py-1 text-xs text-subtle font-mono font-bold">
+                    <ArrowDown className="w-4 h-4 text-brand" />
                     <span>
                       {isDone ? (
-                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        <span className="text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                           ↓ Libera exatamente {step.goodQuantity.toLocaleString('pt-BR')} {step.unit} para{' '}
                           {order.steps[idx + 1]?.processName}
                         </span>
                       ) : (
-                        <span className="text-[#8A7D77]">
+                        <span className="text-subtle">
                           ↓ Aguardando término para liberar saldo
                         </span>
                       )}
@@ -722,70 +730,68 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
         </div>
       </div>
 
-      {/* 4. Final Expedition Card / Conclusão */}
-      {order.status === 'EXPEDICAO' && (
-        <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
-              <h4 className="text-base font-black text-emerald-950">
-                Lote de Produção Finalizado & Pronto para Expedição!
-              </h4>
-            </div>
-            <p className="text-xs text-emerald-900 mt-1">
-              Todas as etapas operacionais foram concluídas com sucesso. Saldo final liberado:{' '}
-              <strong className="font-mono text-sm">{order.currentGoodQuantity.toLocaleString('pt-BR')} {order.unit}</strong>{' '}
-              (Perdas totais do processo: {order.totalLosses} {order.unit}).
-            </p>
-          </div>
+      {actionError && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-700 text-rose-800 text-sm font-bold flex items-start justify-between gap-3">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-rose-800 font-bold cursor-pointer" aria-label="Fechar aviso">×</button>
+        </div>
+      )}
 
-          <button
-            onClick={() => {
-              dispatchOp(order.id, 'Produção 100% concluída e liberada para envio.');
-            }}
-            className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 shrink-0"
-          >
-            <Send className="w-4 h-4" />
-            <span>CONFERIR & FINALIZAR PRODUÇÃO</span>
-          </button>
+      {/* 4. Produção concluída: segue para a pesagem (Carlos) e o Embarque (Ramon) */}
+      {order.status === 'EXPEDICAO' && (
+        <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-700 shadow-sm">
+          <h4 className="text-base font-bold text-emerald-50">Produção concluída</h4>
+          <p className="text-xs text-emerald-800 mt-1">
+            Saldo final: <strong className="font-mono text-sm">{order.currentGoodQuantity.toLocaleString('pt-BR')} {order.unit}</strong>{' '}
+            (perdas: {order.totalLosses} {order.unit}).{' '}
+            {!order.packing
+              ? 'Aguardando a Expedição registrar caixas e peso.'
+              : order.shipping?.etapa === 'EMITIR_NF'
+              ? `Com o Embarque: ${order.packing.totalCaixas} caixa(s), ${order.packing.pesoTotalKg.toLocaleString('pt-BR')} kg, aguardando nota fiscal.`
+              : order.shipping?.etapa === 'EMBARQUE'
+              ? `Com o Embarque: NF ${order.shipping.notaFiscal}, aguardando a saída da carga.`
+              : order.shipping?.etapa === 'POS_EMBARQUE'
+              ? `Embarcada (NF ${order.shipping.notaFiscal}), aguardando o encerramento no Embarque.`
+              : ''}
+          </p>
         </div>
       )}
 
       {/* 5. Production Completed Confirmation Banner */}
       {(order.status === 'PRODUCAO_CONCLUIDA' || order.status === 'FINALIZADA') && (
-        <div className="p-5 rounded-2xl bg-emerald-100/70 border border-emerald-400 text-emerald-950 flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-emerald-100/70 border border-emerald-700 text-emerald-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold">
               ✓
             </div>
             <div>
-              <h4 className="font-black text-sm text-emerald-900">PRODUÇÃO CONCLUÍDA</h4>
-              <p className="text-xs text-emerald-700">
+              <h4 className="font-bold text-sm text-emerald-800">PRODUÇÃO CONCLUÍDA</h4>
+              <p className="text-xs text-emerald-800">
                 Ordem de Produção concluída em todas as etapas. Total fabricado:{' '}
                 <strong>{order.currentGoodQuantity.toLocaleString('pt-BR')} {order.unit}</strong>.
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono font-bold bg-white px-3 py-1 rounded-lg border border-emerald-300 text-emerald-700">
+          <span className="text-xs font-mono font-bold bg-white px-3 py-1 rounded-lg border border-emerald-700 text-emerald-800">
             {order.totalLosses} perdas acumuladas
           </span>
         </div>
       )}
 
       {/* 6. Chronological Audit History for this OP */}
-      <div className="rounded-2xl border border-[#E5DAD3] bg-white p-5 space-y-3">
+      <div className="rounded-2xl border border-line bg-white p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-black text-sm text-[#1C1418] flex items-center gap-2">
-            <History className="w-4 h-4 text-amber-500" />
+          <h4 className="font-bold text-sm text-ink flex items-center gap-2">
+            <History className="w-4 h-4 text-brand" />
             <span>Histórico Cronológico da OP (Rastreabilidade em Tempo Real)</span>
           </h4>
-          <span className="text-[11px] text-[#8A7D77] font-mono">
+          <span className="text-[11px] text-subtle font-mono">
             {opLogs.length} Registros Auditados
           </span>
         </div>
 
         {opLogs.length === 0 ? (
-          <p className="text-xs text-[#8A7D77] py-3 italic">
+          <p className="text-xs text-subtle py-3 italic">
             Nenhuma movimentação registrada até o momento.
           </p>
         ) : (
@@ -793,13 +799,13 @@ export const ProductionRouteFlow: React.FC<ProductionRouteFlowProps> = ({
             {opLogs.map((log) => (
               <div
                 key={log.id}
-                className="text-xs p-2.5 rounded-xl bg-[#FAF5F1] border border-[#E5DAD3] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
+                className="text-xs p-2.5 rounded-xl bg-canvas border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
               >
                 <div>
-                  <span className="font-bold text-[#1C1418]">{log.userName}: </span>
-                  <span className="text-[#3A3034]">{log.details}</span>
+                  <span className="font-bold text-ink">{log.userName}: </span>
+                  <span className="text-ink-soft">{log.details}</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#8A7D77] shrink-0">
+                <span className="text-[10px] font-mono text-subtle shrink-0">
                   {new Date(log.timestamp).toLocaleTimeString('pt-BR', {
                     hour: '2-digit',
                     minute: '2-digit',

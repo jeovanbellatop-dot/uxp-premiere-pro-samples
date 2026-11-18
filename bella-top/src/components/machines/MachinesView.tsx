@@ -38,13 +38,13 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
   return (
     <div className="space-y-6 pb-16 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E5DAD3] p-5 rounded-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-line p-5 rounded-2xl">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1C1418] flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-amber-400" />
+          <h2 className="text-xl font-semibold text-ink flex items-center gap-2">
+            <Cpu className="w-5 h-5 text-amber-700" />
             <span>Parque Industrial de Máquinas • Bella Top</span>
           </h2>
-          <p className="text-xs text-[#6E615B] mt-0.5">
+          <p className="text-xs text-muted mt-0.5">
             Monitoramento de velocidade real vs nominal, filas ativas, tempos de setup e eficiência operacional.
           </p>
         </div>
@@ -54,7 +54,7 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
           <select
             value={sectorFilter}
             onChange={(e) => setSectorFilter(e.target.value)}
-            className="bg-[#FAF5F1] border border-[#E5DAD3] text-[#1C1418] rounded-lg px-2.5 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
+            className="bg-canvas border border-line text-ink rounded-lg px-2.5 py-1.5 text-xs focus:border-brand focus:outline-none"
           >
             <option value="ALL">Todos os Setores</option>
             {sectors.map((s) => (
@@ -67,7 +67,7 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#FAF5F1] border border-[#E5DAD3] text-[#1C1418] rounded-lg px-2.5 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
+            className="bg-canvas border border-line text-ink rounded-lg px-2.5 py-1.5 text-xs focus:border-brand focus:outline-none"
           >
             <option value="ALL">Todos os Status</option>
             <option value="DISPONIVEL">Aguardando</option>
@@ -100,10 +100,10 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
               key={machine.id}
               className={`bg-white border rounded-2xl p-5 flex flex-col justify-between transition-all ${
                 isProducing
-                  ? 'border-emerald-700/50 ring-1 ring-emerald-500/20 shadow-lg'
+                  ? 'border-emerald-800/50 ring-1 ring-emerald-600/20 shadow-sm'
                   : isPaused
-                  ? 'border-amber-700/50 bg-amber-950/10'
-                  : 'border-[#E5DAD3]'
+                  ? 'border-amber-800/50 bg-amber-50/10'
+                  : 'border-line'
               }`}
             >
               <div>
@@ -111,13 +111,13 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#F2EBE6] text-amber-300 font-bold border border-[#E5DAD3]">
+                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-hover text-amber-700 font-bold border border-line">
                         {machine.code}
                       </span>
-                      <h3 className="font-extrabold text-sm text-[#1C1418]">{machine.name}</h3>
+                      <h3 className="font-semibold text-sm text-ink">{machine.name}</h3>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <p className="text-[11px] text-[#6E615B]">Setor: {machine.sector}</p>
+                      <p className="text-[11px] text-muted">Setor: {machine.sector}</p>
                       {(() => {
                         const operator = users.find(
                           (u) =>
@@ -125,7 +125,7 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                             (u.role === 'OPERATOR' || u.role === 'LIDER')
                         );
                         return operator ? (
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold">
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 border border-amber-500/30 font-semibold">
                             👤 Operador: {operator.name}
                           </span>
                         ) : null;
@@ -136,10 +136,10 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase font-mono ${
                       isProducing
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        ? 'bg-emerald-600/20 text-emerald-700 border border-emerald-600/40'
                         : isPaused
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse'
-                        : 'bg-[#F2EBE6] text-[#6E615B] border border-[#E5DAD3]'
+                        ? 'bg-amber-500/20 text-amber-700 border border-amber-500/40 animate-pulse'
+                        : 'bg-hover text-muted border border-line'
                     }`}
                   >
                     ● {MACHINE_STATUS_LABELS[machine.status] || machine.status}
@@ -147,10 +147,10 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                 </div>
 
                 {/* Technical Parameters */}
-                <div className="grid grid-cols-2 gap-2 mt-4 p-3 rounded-xl bg-[#FAF5F1] border border-[#E5DAD3] text-xs font-mono">
+                <div className="grid grid-cols-2 gap-2 mt-4 p-3 rounded-xl bg-canvas border border-line text-xs font-mono">
                   <div>
-                    <span className="text-[10px] text-[#8A7D77] uppercase block">Velocidade</span>
-                    <span className="text-[#1C1418] font-bold">
+                    <span className="text-[10px] text-subtle uppercase block">Velocidade</span>
+                    <span className="text-ink font-bold">
                       {machine.nominalSpeed > 0
                         ? machine.nominalSpeed + ' ' + (machine.productionUnit === 'METROS' ? 'm/min' : 'un/h')
                         : 'SEM DADO REAL'}
@@ -158,8 +158,8 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-[10px] text-[#8A7D77] uppercase block">Eficiência OEE</span>
-                    <span className="text-emerald-400 font-bold">
+                    <span className="text-[10px] text-subtle uppercase block">Eficiência OEE</span>
+                    <span className="text-emerald-700 font-bold">
                       {(machine.historicalEfficiencyFactor * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -167,7 +167,7 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
 
                 {/* Current Active Job */}
                 {currentOp && currentStep ? (
-                  <div className="mt-4 p-3 rounded-xl bg-[#FAF5F1] border border-[#E5DAD3] space-y-2">
+                  <div className="mt-4 p-3 rounded-xl bg-canvas border border-line space-y-2">
                     <div className="flex items-center gap-2.5">
                       <OpProductThumbnail
                         thumbnail={currentOp.productThumbnail}
@@ -178,22 +178,22 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-mono font-bold text-[#1C1418]">
+                          <span className="font-mono font-bold text-ink">
                             OP #{currentOp.opNumber}
                           </span>
-                          <span className="text-[#6E615B] text-[11px] truncate max-w-[110px]">
+                          <span className="text-muted text-[11px] truncate max-w-[110px]">
                             {currentOp.client}
                           </span>
                         </div>
-                        <div className="text-xs text-[#1C1418] font-semibold truncate mt-0.5">
+                        <div className="text-xs text-ink font-semibold truncate mt-0.5">
                           {currentOp.productName}
                         </div>
                       </div>
                     </div>
 
-                    <div className="w-full bg-[#F2EBE6] rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-hover rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-emerald-500 h-full rounded-full"
+                        className="bg-emerald-600 h-full rounded-full"
                         style={{
                           width: `${Math.min(
                             100,
@@ -205,7 +205,7 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                       ></div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-[#6E615B] font-mono">
+                    <div className="flex items-center justify-between text-[11px] text-muted font-mono">
                       <span>
                         Produzido: {currentStep.producedQuantity.toLocaleString('pt-BR')} /{' '}
                         {currentStep.receivedQuantity.toLocaleString('pt-BR')} {currentStep.unit}
@@ -213,13 +213,13 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                     </div>
 
                     {isPaused && (
-                      <div className="p-2 rounded bg-amber-950/40 border border-amber-900/60 text-[11px] text-amber-300">
+                      <div className="p-2 rounded bg-amber-50/40 border border-amber-200/60 text-[11px] text-amber-700">
                         ⚠️ Pausa: {machine.currentPauseReason}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="mt-4 p-3 rounded-xl bg-[#FAF5F1] border border-[#E5DAD3] text-center py-4 text-[#8A7D77] text-xs">
+                  <div className="mt-4 p-3 rounded-xl bg-canvas border border-line text-center py-4 text-subtle text-xs">
                     {isUnavailable
                       ? 'INDISPONÍVEL — não recebe novas OPs'
                       : 'Disponível para receber nova OP'}
@@ -229,8 +229,8 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                 {/* Next in Queue */}
                 <div className="mt-4 space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-[#6E615B] font-semibold uppercase">Fila de Espera:</span>
-                    <span className="font-mono text-[#E30A78] font-bold">{queue.length} OPs</span>
+                    <span className="text-muted font-semibold uppercase">Fila de Espera:</span>
+                    <span className="font-mono text-brand font-bold">{queue.length} OPs</span>
                   </div>
 
                   {queue.length > 0 ? (
@@ -239,7 +239,7 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                         <div
                           key={item.step.id}
                           onClick={() => onSelectOp(item.order.id)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-[#E5DAD3] text-[11px] flex items-center justify-between hover:border-[#E30A78]/50 hover:bg-pink-50/30 cursor-pointer transition-colors shadow-2xs"
+                          className="px-2.5 py-1.5 rounded-lg bg-white border border-line text-[11px] flex items-center justify-between hover:border-brand/50 hover:bg-pink-50/30 cursor-pointer transition-colors shadow-2xs"
                         >
                           <div className="flex items-center gap-2">
                             <OpProductThumbnail
@@ -249,28 +249,28 @@ export const MachinesView: React.FC<MachinesViewProps> = ({
                               size="xs"
                               className="shrink-0"
                             />
-                            <span className="font-mono text-[#1C1418] font-bold">
+                            <span className="font-mono text-ink font-bold">
                               #{idx + 1} OP {item.order.opNumber}
                             </span>
                           </div>
-                          <span className="text-emerald-600 font-mono font-bold text-[10px]">
+                          <span className="text-emerald-700 font-mono font-bold text-[10px]">
                             {item.step.receivedQuantity.toLocaleString('pt-BR')} {item.step.unit}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-[11px] text-[#8A7D77] italic">Fila vazia</div>
+                    <div className="text-[11px] text-subtle italic">Fila vazia</div>
                   )}
                 </div>
               </div>
 
               {/* Action */}
-              <div className="mt-5 pt-3 border-t border-[#E5DAD3] flex items-center justify-between">
+              <div className="mt-5 pt-3 border-t border-line flex items-center justify-between">
                 <button
                   onClick={() => !isUnavailable && onSelectMachineForCockpit(machine.id)}
                   disabled={isUnavailable}
-                  className="w-full py-2 bg-[#F2EBE6] hover:bg-[#E8DED8] text-amber-400 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 bg-hover hover:bg-line text-amber-700 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Cpu className="w-3.5 h-3.5" />
                   <span>Abrir Terminal do Operador</span>

@@ -283,17 +283,12 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
     }
 
     // Registra na auditoria local
-    logAudit({
-      action: 'PCP_OP_MANUALLY_REVISED' as any,
-      entityType: 'OP',
-      entityId: `OP_${updatedData.numeroOp}`,
-      details: `PCP revisou e confirmou manualmente a ficha técnica da OP ${updatedData.numeroOp}. Motivo: ${justification}. Alterações: ${diffs.join('; ') || 'Nenhuma'}`,
-      metadata: {
-        opNumber: updatedData.numeroOp,
-        diffs,
-        justification,
-      },
-    });
+    logAudit(
+      'PCP_OP_MANUALLY_REVISED' as any,
+      'OP',
+      `OP_${updatedData.numeroOp}`,
+      `PCP revisou e confirmou manualmente a ficha técnica da OP ${updatedData.numeroOp}. Motivo: ${justification}. Alterações: ${diffs.join('; ') || 'Nenhuma'}`
+    );
 
     // Registra na auditoria do servidor
     try {
@@ -331,9 +326,15 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
     }
     // O arquivo original pode ser grande: a sincronização remove binários
     // antes de enviar a OP ao Firestore e mantém apenas a referência do arquivo.
-    const newOrder = createOrderFromExtracted(extractedData, editableRoute);
-    onOpCreated(newOrder.id);
-    onClose();
+    try {
+      const newOrder = createOrderFromExtracted(extractedData, editableRoute);
+      onOpCreated(newOrder.id);
+      onClose();
+    } catch (err: any) {
+      // Ex.: OP com número já lançado. O PCP precisa ver o motivo, não um botão que não reage.
+      setSuccessMsg(null);
+      setErrorMsg(err?.message || 'Não foi possível lançar a OP.');
+    }
   };
 
   const handleMachineChangeForStep = (stepIdx: number, newMachineId: string) => {
@@ -356,23 +357,23 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-[#1C1418]/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in">
-        <div className="bg-white border border-[#E5DAD3] w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
+      <div className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in">
+        <div className="bg-white border border-line w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
           
           {/* Header */}
-          <div className="bg-[#FAF5F1] px-6 py-4 border-b border-[#E5DAD3] flex items-center justify-between">
+          <div className="bg-canvas px-6 py-4 border-b border-line flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#E30A78] to-[#B30A5C] text-white flex items-center justify-center font-bold shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand to-brand-dark text-white flex items-center justify-center font-bold shadow-sm">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base text-[#1C1418] flex items-center gap-2">
+                <h3 className="font-semibold text-base text-ink flex items-center gap-2">
                   <span>Cadastro & Importação de Ordem de Produção</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-[#B30A5C] font-mono border border-pink-200">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-brand-dark font-mono border border-pink-200">
                     UPLOAD 2 ARQUIVOS OBRIGATÓRIOS
                   </span>
                 </h3>
-                <p className="text-xs text-[#6E615B]">
+                <p className="text-xs text-muted">
                   1 Arquivo de OP (Instruções produtivas) + 1 Arquivo de Layout (Identidade visual da sacola)
                 </p>
               </div>
@@ -380,7 +381,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl text-[#6E615B] hover:text-[#1C1418] hover:bg-[#F2EBE6] transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-muted hover:text-ink hover:bg-hover transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -389,15 +390,15 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
           {/* Modal Content */}
           <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
             {errorMsg && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2.5 font-medium">
-                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-2.5 font-medium">
+                <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {successMsg && (
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-2.5 font-medium animate-in fade-in">
-                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
                 <span>{successMsg}</span>
               </div>
             )}
@@ -413,38 +414,38 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                   <div
                     className={`rounded-2xl border-2 p-5 transition-all flex flex-col justify-between ${
                       opFile
-                        ? 'border-emerald-500 bg-emerald-50/40'
-                        : 'border-[#E5DAD3] hover:border-[#E30A78]/70 bg-[#FAF5F1]'
+                        ? 'border-emerald-600 bg-emerald-50/40'
+                        : 'border-line hover:border-brand/70 bg-canvas'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center justify-between pb-3 border-b border-[#E5DAD3]">
+                      <div className="flex items-center justify-between pb-3 border-b border-line">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-pink-50 border border-[#F5C6DC] text-[#E30A78] flex items-center justify-center font-bold">
+                          <div className="w-8 h-8 rounded-lg bg-pink-50 border border-brand-soft text-brand flex items-center justify-center font-bold">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div>
-                            <span className="text-[10px] font-mono font-black tracking-widest text-[#B30A5C] uppercase block">
+                            <span className="text-[10px] font-mono font-bold tracking-widest text-brand-dark uppercase block">
                               ARQUIVO 1
                             </span>
-                            <h4 className="font-extrabold text-sm text-[#1C1418]">
+                            <h4 className="font-semibold text-sm text-ink">
                               ORDEM DE PRODUÇÃO
                             </h4>
                           </div>
                         </div>
                         {opFile ? (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold border border-emerald-300 flex items-center gap-1">
-                            <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-700 flex items-center gap-1">
+                            <Check className="w-3 h-3 text-emerald-700" />
                             CARREGADA
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold border border-amber-300">
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-700">
                             PENDENTE
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[11px] text-[#6E615B] mt-2">
+                      <p className="text-[11px] text-muted mt-2">
                         Fornece número da OP, cliente, quantidade, materiais, setores, medidas e instruções de fabricação.
                       </p>
 
@@ -453,12 +454,12 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                         {opFile ? (
                           <div className="bg-white border border-emerald-200 p-3.5 rounded-xl flex items-center justify-between gap-3 shadow-sm">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <FileCheck2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                              <FileCheck2 className="w-6 h-6 text-emerald-700 shrink-0" />
                               <div className="min-w-0">
-                                <div className="font-bold text-xs text-[#1C1418] truncate">
+                                <div className="font-bold text-xs text-ink truncate">
                                   {opFile.name}
                                 </div>
-                                <div className="text-[10px] text-[#6E615B] font-mono">
+                                <div className="text-[10px] text-muted font-mono">
                                   {(opFile.size / 1024).toFixed(1)} KB • PDF Industrial
                                 </div>
                               </div>
@@ -466,7 +467,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                             <button
                               type="button"
                               onClick={() => setOpFile(null)}
-                              className="text-xs text-rose-600 hover:text-rose-700 font-bold px-2 py-1 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              className="text-xs text-rose-700 hover:text-rose-800 font-bold px-2 py-1 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             >
                               Trocar
                             </button>
@@ -479,7 +480,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                               if (e.dataTransfer.files?.[0]) handleOpFileSelect(e.dataTransfer.files[0]);
                             }}
                             onClick={() => document.getElementById('op-input-field')?.click()}
-                            className="border border-dashed border-[#E5DAD3] hover:border-[#E30A78] rounded-xl p-6 text-center bg-white cursor-pointer transition-colors flex flex-col items-center justify-center gap-2"
+                            className="border border-dashed border-line hover:border-brand rounded-xl p-6 text-center bg-white cursor-pointer transition-colors flex flex-col items-center justify-center gap-2"
                           >
                             <input
                               type="file"
@@ -490,13 +491,13 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                                 if (e.target.files?.[0]) handleOpFileSelect(e.target.files[0]);
                               }}
                             />
-                            <div className="w-10 h-10 rounded-xl bg-pink-50 text-[#E30A78] flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-pink-50 text-brand flex items-center justify-center">
                               <Upload className="w-5 h-5" />
                             </div>
-                            <span className="font-bold text-xs text-[#1C1418]">
+                            <span className="font-bold text-xs text-ink">
                               [ CARREGAR PDF DA OP ]
                             </span>
-                            <span className="text-[10px] text-[#6E615B]">
+                            <span className="text-[10px] text-muted">
                               Clique ou arraste o arquivo PDF da OP aqui
                             </span>
                           </div>
@@ -509,38 +510,38 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                   <div
                     className={`rounded-2xl border-2 p-5 transition-all flex flex-col justify-between ${
                       layoutFile
-                        ? 'border-emerald-500 bg-emerald-50/40'
-                        : 'border-[#E5DAD3] hover:border-[#E30A78]/70 bg-[#FAF5F1]'
+                        ? 'border-emerald-600 bg-emerald-50/40'
+                        : 'border-line hover:border-brand/70 bg-canvas'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center justify-between pb-3 border-b border-[#E5DAD3]">
+                      <div className="flex items-center justify-between pb-3 border-b border-line">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-pink-50 border border-[#F5C6DC] text-[#B30A5C] flex items-center justify-center font-bold">
+                          <div className="w-8 h-8 rounded-lg bg-pink-50 border border-brand-soft text-brand-dark flex items-center justify-center font-bold">
                             <ImageIcon className="w-4 h-4" />
                           </div>
                           <div>
-                            <span className="text-[10px] font-mono font-black tracking-widest text-[#B30A5C] uppercase block">
+                            <span className="text-[10px] font-mono font-bold tracking-widest text-brand-dark uppercase block">
                               ARQUIVO 2
                             </span>
-                            <h4 className="font-extrabold text-sm text-[#1C1418]">
+                            <h4 className="font-semibold text-sm text-ink">
                               LAYOUT APROVADO
                             </h4>
                           </div>
                         </div>
                         {layoutFile ? (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold border border-emerald-300 flex items-center gap-1">
-                            <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-700 flex items-center gap-1">
+                            <Check className="w-3 h-3 text-emerald-700" />
                             CARREGADO
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold border border-amber-300">
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-700">
                             PENDENTE
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[11px] text-[#6E615B] mt-2">
+                      <p className="text-[11px] text-muted mt-2">
                         Fornece a imagem principal da sacola/saco, cores da estampa, arte visual e referências gráficas oficiais.
                       </p>
 
@@ -553,17 +554,17 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                                 <img
                                   src={layoutPreviewUrl}
                                   alt="Preview layout"
-                                  className="w-10 h-10 rounded-lg object-contain bg-[#FAF5F1] border border-[#E5DAD3] shrink-0 p-0.5"
+                                  className="w-10 h-10 rounded-lg object-contain bg-canvas border border-line shrink-0 p-0.5"
                                   referrerPolicy="no-referrer"
                                 />
                               ) : (
-                                <FileCheck2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                                <FileCheck2 className="w-6 h-6 text-emerald-700 shrink-0" />
                               )}
                               <div className="min-w-0">
-                                <div className="font-bold text-xs text-[#1C1418] truncate">
+                                <div className="font-bold text-xs text-ink truncate">
                                   {layoutFile.name}
                                 </div>
-                                <div className="text-[10px] text-[#6E615B] font-mono">
+                                <div className="text-[10px] text-muted font-mono">
                                   {(layoutFile.size / 1024).toFixed(1)} KB • Layout Aprovado
                                 </div>
                               </div>
@@ -574,7 +575,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                                 setLayoutFile(null);
                                 setLayoutPreviewUrl(null);
                               }}
-                              className="text-xs text-rose-600 hover:text-rose-700 font-bold px-2 py-1 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              className="text-xs text-rose-700 hover:text-rose-800 font-bold px-2 py-1 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             >
                               Trocar
                             </button>
@@ -587,7 +588,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                               if (e.dataTransfer.files?.[0]) handleLayoutFileSelect(e.dataTransfer.files[0]);
                             }}
                             onClick={() => document.getElementById('layout-input-field')?.click()}
-                            className="border border-dashed border-[#E5DAD3] hover:border-[#E30A78] rounded-xl p-6 text-center bg-white cursor-pointer transition-colors flex flex-col items-center justify-center gap-2"
+                            className="border border-dashed border-line hover:border-brand rounded-xl p-6 text-center bg-white cursor-pointer transition-colors flex flex-col items-center justify-center gap-2"
                           >
                             <input
                               type="file"
@@ -598,13 +599,13 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                                 if (e.target.files?.[0]) handleLayoutFileSelect(e.target.files[0]);
                               }}
                             />
-                            <div className="w-10 h-10 rounded-xl bg-pink-50 text-[#B30A5C] flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-pink-50 text-brand-dark flex items-center justify-center">
                               <Upload className="w-5 h-5" />
                             </div>
-                            <span className="font-bold text-xs text-[#1C1418]">
+                            <span className="font-bold text-xs text-ink">
                               [ CARREGAR LAYOUT ]
                             </span>
-                            <span className="text-[10px] text-[#6E615B]">
+                            <span className="text-[10px] text-muted">
                               Clique ou arraste o arquivo do Layout aprovado (PDF ou Imagem)
                             </span>
                           </div>
@@ -618,18 +619,18 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                 <div
                   className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                     documentalStatusType === 'complete'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : 'bg-amber-50 border-amber-200 text-amber-700'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                      : 'bg-amber-50 border-amber-200 text-amber-800'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     {documentalStatusType === 'complete' ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
                     ) : (
-                      <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                      <AlertCircle className="w-5 h-5 text-amber-700 shrink-0" />
                     )}
                     <div>
-                      <div className="font-extrabold text-xs tracking-wide">
+                      <div className="font-semibold text-xs tracking-wide">
                         {documentalStatusText}
                       </div>
                       <div className="text-[11px] opacity-80">
@@ -647,14 +648,14 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                   <div className="flex items-center gap-2 shrink-0">
                     <span
                       className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                        isOpLoaded ? 'bg-emerald-200 text-emerald-700' : 'bg-amber-200 text-amber-700'
+                        isOpLoaded ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-200 text-amber-800'
                       }`}
                     >
                       OP: {isOpLoaded ? 'OK' : 'PENDENTE'}
                     </span>
                     <span
                       className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                        isLayoutLoaded ? 'bg-emerald-200 text-emerald-700' : 'bg-amber-200 text-amber-700'
+                        isLayoutLoaded ? 'bg-emerald-200 text-emerald-800' : 'bg-amber-200 text-amber-800'
                       }`}
                     >
                       LAYOUT: {isLayoutLoaded ? 'OK' : 'PENDENTE'}
@@ -664,12 +665,12 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
 
                 {/* Processing State */}
                 {isProcessing && (
-                  <div className="py-8 space-y-3 flex flex-col items-center justify-center bg-[#FAF5F1] rounded-2xl border border-[#E5DAD3]">
-                    <RefreshCw className="w-10 h-10 text-[#E30A78] animate-spin" />
-                    <div className="text-base font-extrabold text-[#1C1418]">
+                  <div className="py-8 space-y-3 flex flex-col items-center justify-center bg-canvas rounded-2xl border border-line">
+                    <RefreshCw className="w-10 h-10 text-brand animate-spin" />
+                    <div className="text-base font-semibold text-ink">
                       Lendo Ordem de Produção e Layout Aprovado...
                     </div>
-                    <p className="text-[#6E615B] text-xs max-w-md text-center">
+                    <p className="text-muted text-xs max-w-md text-center">
                       Associando os dois documentos, interpretando dados técnicos, determinando roteiro fabril e isolando a foto oficial da sacola.
                     </p>
                   </div>
@@ -683,22 +684,22 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                 
                 {/* BANNER DE AVISO QUANDO PRECISA DE REVISÃO PCP */}
                 {extractedData.precisaRevisaoPcp && !isEditingManualData && (
-                  <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 animate-in fade-in">
+                  <div className="bg-amber-50 border-2 border-amber-700 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 animate-in fade-in">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
-                          <AlertTriangle className="w-5 h-5 text-amber-600" />
+                        <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-700 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                          <AlertTriangle className="w-5 h-5 text-amber-700" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-black text-sm text-amber-950 uppercase tracking-wide">
+                            <h4 className="font-bold text-sm text-amber-50 uppercase tracking-wide">
                               Revisão PCP Obrigatória
                             </h4>
-                            <span className="px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900 font-bold text-[10px] border border-amber-400">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-800 font-bold text-[10px] border border-amber-700">
                               PENDÊNCIA TÉCNICA
                             </span>
                           </div>
-                          <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                          <p className="text-xs text-amber-800 mt-1 leading-relaxed">
                             Alguns campos técnicos da OP não foram identificados com 100% de certeza ou estão ausentes. Para evitar erros no chão de fábrica, confira e corrija os dados abaixo antes de liberar a produção.
                           </p>
                         </div>
@@ -707,7 +708,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setIsEditingManualData(true)}
-                        className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#E30A78] to-[#B30A5C] hover:from-[#c20866] hover:to-[#96084c] text-white font-black text-xs flex items-center gap-2 shadow-md shadow-pink-600/20 transition-all cursor-pointer self-start sm:self-auto shrink-0 active:scale-95"
+                        className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand-deep text-white font-bold text-xs flex items-center gap-2 shadow-sm shadow-pink-600/20 transition-all cursor-pointer self-start sm:self-auto shrink-0 active:scale-95"
                       >
                         <Edit3 className="w-4 h-4" />
                         <span>REVISAR E CORRIGIR DADOS</span>
@@ -717,7 +718,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                     {/* Lista de Inconsistências / Campos Pendentes */}
                     {extractedData.inconsistencias && extractedData.inconsistencias.length > 0 && (
                       <div className="bg-white/80 border border-amber-200 rounded-xl p-3 text-[11px] space-y-1">
-                        <span className="font-bold text-amber-900 block">Campos que requerem sua atenção:</span>
+                        <span className="font-bold text-amber-800 block">Campos que requerem sua atenção:</span>
                         <ul className="list-disc list-inside space-y-0.5 text-amber-800">
                           {extractedData.inconsistencias.map((inc, i) => (
                             <li key={i}>{inc}</li>
@@ -738,41 +739,41 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                 ) : (
                   <>
                     {/* 1. SEÇÃO DOCUMENTOS */}
-                    <div className="bg-[#FAF5F1] border border-[#E5DAD3] rounded-2xl p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5DAD3] pb-3">
-                        <h4 className="font-black text-xs uppercase tracking-widest text-[#B30A5C] flex items-center gap-2">
-                          <ShieldCheck className="w-4 h-4 text-[#E30A78]" />
+                    <div className="bg-canvas border border-line rounded-2xl p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
+                        <h4 className="font-bold text-xs uppercase tracking-widest text-brand-dark flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-brand" />
                           <span>1. DOCUMENTOS VINCULADOS</span>
                         </h4>
-                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold text-[11px] flex items-center gap-1.5 font-mono">
-                          <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
+                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-700 font-semibold text-[11px] flex items-center gap-1.5 font-mono">
+                          <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />
                           STATUS DOCUMENTAL: COMPLETO
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                        <div className="bg-white border border-[#E5DAD3] p-3 rounded-xl flex items-center justify-between">
+                        <div className="bg-white border border-line p-3 rounded-xl flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-[#E30A78]" />
-                            <span className="font-bold text-xs text-[#1C1418]">OP:</span>
-                            <span className="text-xs text-[#6E615B] font-mono truncate max-w-[180px]">
+                            <FileText className="w-4 h-4 text-brand" />
+                            <span className="font-bold text-xs text-ink">OP:</span>
+                            <span className="text-xs text-muted font-mono truncate max-w-[180px]">
                               {opFile?.name || extractedData.opFileName || 'Ordem_Producao.pdf'}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
                             CARREGADA
                           </span>
                         </div>
 
-                        <div className="bg-white border border-[#E5DAD3] p-3 rounded-xl flex items-center justify-between">
+                        <div className="bg-white border border-line p-3 rounded-xl flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-[#B30A5C]" />
-                            <span className="font-bold text-xs text-[#1C1418]">Layout:</span>
-                            <span className="text-xs text-[#6E615B] font-mono truncate max-w-[180px]">
+                            <ImageIcon className="w-4 h-4 text-brand-dark" />
+                            <span className="font-bold text-xs text-ink">Layout:</span>
+                            <span className="text-xs text-muted font-mono truncate max-w-[180px]">
                               {layoutFile?.name || extractedData.layoutFileName || 'Layout_Aprovado.pdf'}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
                             CARREGADO
                           </span>
                         </div>
@@ -780,10 +781,10 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                     </div>
 
                     {/* 2. SEÇÃO FOTO IDENTIFICADA (MINIATURA OFICIAL) */}
-                    <div className="rounded-2xl border border-[#F5C6DC] bg-gradient-to-r from-pink-50/40 via-white to-pink-50/20 p-5 space-y-4 shadow-sm">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5DAD3] pb-3">
-                        <h4 className="font-black text-xs uppercase tracking-widest text-[#B30A5C] flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-[#E30A78]" />
+                    <div className="rounded-2xl border border-brand-soft bg-gradient-to-r from-pink-50/40 via-white to-pink-50/20 p-5 space-y-4 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
+                        <h4 className="font-bold text-xs uppercase tracking-widest text-brand-dark flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-brand" />
                           <span>2. FOTO IDENTIFICADA (MINIATURA OFICIAL DA OP)</span>
                         </h4>
 
@@ -793,18 +794,18 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                               <button
                                 type="button"
                                 onClick={() => setIsCropperOpen(true)}
-                                className="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-[#B30A5C] border border-[#F5C6DC] font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-brand-dark border border-brand-soft font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                               >
-                                <Crop className="w-3.5 h-3.5 text-[#E30A78]" />
+                                <Crop className="w-3.5 h-3.5 text-brand" />
                                 <span>Ajustar Recorte da Sacola</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => setIsFullLayoutModalOpen(true)}
-                                className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-white hover:bg-hover text-ink border border-line font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                               >
-                                <Eye className="w-3.5 h-3.5 text-[#E30A78]" />
+                                <Eye className="w-3.5 h-3.5 text-brand" />
                                 <span>Ver Layout Completo</span>
                               </button>
                             </>
@@ -814,50 +815,50 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                         {/* Isolated Product Bag Thumbnail */}
-                        <div className="bg-white border border-[#E5DAD3] p-4 rounded-xl flex items-center gap-4">
+                        <div className="bg-white border border-line p-4 rounded-xl flex items-center gap-4">
                           <OpProductThumbnail
                             thumbnail={extractedData.productThumbnail}
                             layoutImage={layoutImageSrc}
                             opNumber={extractedData.numeroOp}
                             size="2xl"
                             interactive={false}
-                            className="border-2 border-[#E30A78]/40 shadow-sm"
+                            className="border-2 border-brand/40 shadow-sm"
                           />
 
                           <div className="space-y-1 flex-1">
-                            <span className="text-[10px] uppercase font-bold text-[#8A7D77] tracking-wider block">
+                            <span className="text-[10px] uppercase font-bold text-subtle tracking-wider block">
                               Identidade Visual em Produção
                             </span>
-                            <h5 className="font-extrabold text-sm text-[#1C1418]">
+                            <h5 className="font-semibold text-sm text-ink">
                               {extractedData.produtoNome}
                             </h5>
-                            <p className="text-[11px] text-[#6E615B] font-mono">
+                            <p className="text-[11px] text-muted font-mono">
                               Cliente: <strong>{extractedData.cliente}</strong>
                             </p>
-                            <p className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded inline-block font-semibold mt-1">
+                            <p className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded inline-block font-semibold mt-1">
                               Acompanhará a OP em todas as telas
                             </p>
                           </div>
                         </div>
 
                         {/* Original Layout Preview */}
-                        <div className="bg-white border border-[#E5DAD3] p-4 rounded-xl flex items-center justify-between gap-3">
+                        <div className="bg-white border border-line p-4 rounded-xl flex items-center justify-between gap-3">
                           <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-[#8A7D77] tracking-wider block">
+                            <span className="text-[10px] uppercase font-bold text-subtle tracking-wider block">
                               Layout Técnico de Origem
                             </span>
-                            <div className="font-bold text-xs text-[#1C1418] flex items-center gap-1.5">
-                              <Layers className="w-4 h-4 text-[#E30A78]" />
+                            <div className="font-bold text-xs text-ink flex items-center gap-1.5">
+                              <Layers className="w-4 h-4 text-brand" />
                               <span>{layoutFile?.name || extractedData.layoutFileName || 'Layout_Oficial.pdf'}</span>
                             </div>
-                            <p className="text-[11px] text-[#6E615B]">
+                            <p className="text-[11px] text-muted">
                               Documento original aprovado pelo cliente.
                             </p>
                           </div>
 
                           {layoutImageSrc && (
                             <div
-                              className="w-20 h-20 rounded-xl bg-[#FAF5F1] border border-[#E5DAD3] overflow-hidden shrink-0 flex items-center justify-center cursor-pointer group"
+                              className="w-20 h-20 rounded-xl bg-canvas border border-line overflow-hidden shrink-0 flex items-center justify-center cursor-pointer group"
                               onClick={() => setIsFullLayoutModalOpen(true)}
                               title="Clique para ver layout completo"
                             >
@@ -877,109 +878,109 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                       
                       {/* Column 1: Ficha Técnica Lida da OP */}
-                      <div className="bg-[#FAF5F1] border border-[#E5DAD3] rounded-2xl p-5 space-y-3">
-                        <div className="flex items-center justify-between border-b border-[#E5DAD3] pb-2">
-                          <h4 className="font-extrabold text-[#1C1418] flex items-center gap-1.5">
-                            <FileText className="w-4 h-4 text-[#E30A78]" />
+                      <div className="bg-canvas border border-line rounded-2xl p-5 space-y-3">
+                        <div className="flex items-center justify-between border-b border-line pb-2">
+                          <h4 className="font-semibold text-ink flex items-center gap-1.5">
+                            <FileText className="w-4 h-4 text-brand" />
                             <span>3. Dados Lidos da OP</span>
                           </h4>
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => setIsEditingManualData(true)}
-                              className="px-2.5 py-1 rounded-lg bg-white hover:bg-pink-50 text-[#B30A5C] border border-[#F5C6DC] font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-white hover:bg-pink-50 text-brand-dark border border-brand-soft font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
                               title="Corrigir ou editar os dados lidos"
                             >
-                              <Edit3 className="w-3.5 h-3.5 text-[#E30A78]" />
+                              <Edit3 className="w-3.5 h-3.5 text-brand" />
                               <span>Editar Ficha</span>
                             </button>
-                            <span className="font-mono text-[#E30A78] font-bold">
+                            <span className="font-mono text-brand font-bold">
                               OP #{extractedData.numeroOp}
                             </span>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2.5 text-[#3A3034]">
+                        <div className="grid grid-cols-2 gap-2.5 text-ink-soft">
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Cliente
                             </span>
-                            <span className={`font-bold text-xs ${extractedData.cliente === 'Não identificado' ? 'text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-mono' : 'text-[#1C1418]'}`}>
+                            <span className={`font-bold text-xs ${extractedData.cliente === 'Não identificado' ? 'text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-mono' : 'text-ink'}`}>
                               {extractedData.cliente}
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Pedido / Emissão
                             </span>
-                            <span className="font-mono text-[#3A3034] text-xs">
+                            <span className="font-mono text-ink-soft text-xs">
                               {extractedData.numeroPedido}
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Produto Identificado
                             </span>
-                            <span className={`font-semibold text-xs ${extractedData.produtoNome === 'Não identificado' ? 'text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-mono' : 'text-[#B30A5C]'}`}>
+                            <span className={`font-semibold text-xs ${extractedData.produtoNome === 'Não identificado' ? 'text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-mono' : 'text-brand-dark'}`}>
                               {extractedData.produtoNome}
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Quantidade Lote
                             </span>
-                            <span className="font-mono font-bold text-emerald-700 text-xs">
+                            <span className="font-mono font-bold text-emerald-800 text-xs">
                               {extractedData.quantidade.toLocaleString('pt-BR')} {extractedData.unidade}
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Material & Gramatura
                             </span>
-                            <span className="text-[#1C1418]">
+                            <span className="text-ink">
                               {extractedData.material} • {extractedData.gramatura} g/m² ({extractedData.corMaterial})
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Medidas
                             </span>
-                            <span className="font-mono text-[#1C1418]">
+                            <span className="font-mono text-ink">
                               {extractedData.medidasFormatadas ||
                                 `${extractedData.larguraMm}x${extractedData.alturaMm}+${extractedData.fundoMm}mm`}
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Impressão
                             </span>
-                            <span className="text-[#1C1418]">
+                            <span className="text-ink">
                               {extractedData.tipoImpressao} ({extractedData.numeroCores} cores)
                             </span>
                           </div>
 
                           <div>
-                            <span className="text-[10px] uppercase text-[#8A7D77] font-semibold block">
+                            <span className="text-[10px] uppercase text-subtle font-semibold block">
                               Alça / Fechamento
                             </span>
-                            <span className="text-[#1C1418]">
+                            <span className="text-ink">
                               Alça: {extractedData.tipoAlca} | Cordão: {extractedData.usoCordao ? 'Sim' : 'Não'}
                             </span>
                           </div>
                         </div>
 
                         {extractedData.observacoesTecnicas && (
-                          <div className="pt-2 border-t border-[#E5DAD3] text-[11px]">
-                            <span className="text-[#8A7D77] font-semibold uppercase text-[10px] block">
+                          <div className="pt-2 border-t border-line text-[11px]">
+                            <span className="text-subtle font-semibold uppercase text-[10px] block">
                               Observações Técnicas:
                             </span>
-                            <p className="text-[#3A3034] italic mt-0.5">
+                            <p className="text-ink-soft italic mt-0.5">
                               {extractedData.observacoesTecnicas}
                             </p>
                           </div>
@@ -987,22 +988,22 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                       </div>
 
                       {/* Column 2: Roteiro Sugerido & Máquinas */}
-                      <div className="bg-[#FAF5F1] border border-[#E5DAD3] rounded-2xl p-5 space-y-3">
-                        <div className="flex items-center justify-between border-b border-[#E5DAD3] pb-2">
-                          <h4 className="font-extrabold text-[#1C1418] flex items-center gap-1.5">
-                            <Layers className="w-4 h-4 text-emerald-600" />
+                      <div className="bg-canvas border border-line rounded-2xl p-5 space-y-3">
+                        <div className="flex items-center justify-between border-b border-line pb-2">
+                          <h4 className="font-semibold text-ink flex items-center gap-1.5">
+                            <Layers className="w-4 h-4 text-emerald-700" />
                             <span>4. Roteiro Sugerido & Máquinas</span>
                           </h4>
-                          <span className="text-[11px] text-[#6E615B] font-mono">
+                          <span className="text-[11px] text-muted font-mono">
                             {editableRoute.length} Operações
                           </span>
                         </div>
 
                         {/* Confirmacao do produto pelo PCP: a IA sugere, o PCP confirma. */}
-                        <div className="bg-white border border-[#E5DAD3] rounded-xl p-3 space-y-2">
+                        <div className="bg-white border border-line rounded-xl p-3 space-y-2">
                           <div className="flex items-center gap-1.5">
-                            <UserCheck className="w-3.5 h-3.5 text-[#E30A78]" />
-                            <span className="font-black text-[10px] uppercase tracking-widest text-[#B30A5C]">
+                            <UserCheck className="w-3.5 h-3.5 text-brand" />
+                            <span className="font-bold text-[10px] uppercase tracking-widest text-brand-dark">
                               Produto do roteiro (confirmação do PCP)
                             </span>
                           </div>
@@ -1013,7 +1014,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                               'NAO_IDENTIFICADO'
                             }
                             onChange={(e) => handleConfirmProduct(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E5DAD3] bg-white text-xs font-bold text-[#1C1418] focus:outline-none focus:ring-2 focus:ring-[#E30A78]/40 cursor-pointer"
+                            className="w-full px-3 py-2 rounded-lg border border-line bg-white text-xs font-bold text-ink focus:outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
                           >
                             {PRODUCT_KEY_OPTIONS.map((opt) => (
                               <option key={opt.key} value={opt.key}>
@@ -1021,14 +1022,14 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                               </option>
                             ))}
                           </select>
-                          <p className="text-[10px] text-[#6E615B] leading-relaxed">
+                          <p className="text-[10px] text-muted leading-relaxed">
                             Sugestão da IA:{' '}
-                            <span className="font-bold text-[#3A3034]">
+                            <span className="font-bold text-ink-soft">
                               {getProductKeyLabel(extractedData.produtoSugeridoIa)}
                             </span>
                             {extractedData.produtoConfirmadoPcp &&
                               extractedData.produtoConfirmadoPcp !== extractedData.produtoSugeridoIa && (
-                                <span className="text-[#B30A5C] font-bold"> · corrigido pelo PCP</span>
+                                <span className="text-brand-dark font-bold"> · corrigido pelo PCP</span>
                               )}
                             . Trocar o produto refaz o roteiro abaixo.
                           </p>
@@ -1043,37 +1044,37 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                             return (
                               <div
                                 key={idx}
-                                className="p-2.5 rounded-xl bg-white border border-[#E5DAD3] flex items-center justify-between gap-3 text-xs shadow-sm"
+                                className="p-2.5 rounded-xl bg-white border border-line flex items-center justify-between gap-3 text-xs shadow-sm"
                               >
                                 <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-pink-100 text-[#B30A5C] font-mono font-bold flex items-center justify-center text-[10px] border border-pink-200">
+                                  <span className="w-5 h-5 rounded-full bg-pink-100 text-brand-dark font-mono font-bold flex items-center justify-center text-[10px] border border-pink-200">
                                     {idx + 1}
                                   </span>
                                   <div>
-                                    <div className="font-bold text-[#1C1418] flex items-center gap-1.5">
+                                    <div className="font-bold text-ink flex items-center gap-1.5">
                                       <span>{step.processName}</span>
                                       {((step as any).hasCord || (step.processTypeId === 'proc_solda' && (extractedData?.op?.has_cord || extractedData?.op?.hasDrawstring || extractedData?.op?.handle_type === 'CORDAO'))) && (
-                                        <span className="text-[9px] font-mono font-black px-1.5 py-0.2 rounded bg-amber-100 text-amber-700 border border-amber-300">
+                                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-700">
                                           Cordão: SIM
                                         </span>
                                       )}
                                     </div>
-                                    <div className="text-[10px] text-[#6E615B] font-mono">
+                                    <div className="text-[10px] text-muted font-mono">
                                       Estimado: ~{step.estimatedMinutes} min
                                     </div>
                                   </div>
                                 </div>
 
                                 {step.processTypeId === 'proc_expedicao' || (step as any).isManual || step.processName.toLowerCase().includes('expedi') ? (
-                                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold shadow-xs">
-                                    <UserCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold shadow-xs">
+                                    <UserCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                                     <span>Manual • Carlos (Expedição)</span>
                                   </div>
                                 ) : (
                                   <select
                                     value={step.machineId}
                                     onChange={(e) => handleMachineChangeForStep(idx, e.target.value)}
-                                    className="bg-[#FAF5F1] border border-[#E5DAD3] text-[#1C1418] rounded-lg px-2 py-1 text-[11px] font-bold focus:border-[#E30A78] focus:outline-none"
+                                    className="bg-canvas border border-line text-ink rounded-lg px-2 py-1 text-[11px] font-bold focus:border-brand focus:outline-none"
                                   >
                                     {compatibleMachines.length > 0 ? (
                                       compatibleMachines.map((m) => (
@@ -1099,13 +1100,13 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="bg-[#FAF5F1] px-6 py-4 border-t border-[#E5DAD3] flex items-center justify-between">
+          <div className="bg-canvas px-6 py-4 border-t border-line flex items-center justify-between">
             {activeTab === 'upload' ? (
               <>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-hover text-ink border border-line text-xs font-bold transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1114,10 +1115,10 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                   type="button"
                   onClick={handleAnalyzeAndCreate}
                   disabled={!isDocumentalComplete || isProcessing}
-                  className={`px-6 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer ${
+                  className={`px-6 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer ${
                     isDocumentalComplete && !isProcessing
-                      ? 'bg-gradient-to-r from-[#E30A78] to-[#B30A5C] hover:from-[#c20866] hover:to-[#96084c] text-white shadow-pink-600/20 active:scale-95'
-                      : 'bg-[#E5DAD3] text-[#8A7D77] cursor-not-allowed opacity-70 shadow-none'
+                      ? 'bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand-deep text-white shadow-pink-600/20 active:scale-95'
+                      : 'bg-line text-subtle cursor-not-allowed opacity-70 shadow-none'
                   }`}
                 >
                   {isProcessing ? (
@@ -1135,13 +1136,13 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
               </>
             ) : isEditingManualData ? (
               <div className="w-full flex items-center justify-between">
-                <span className="text-[11px] text-[#6E615B] font-medium">
+                <span className="text-[11px] text-muted font-medium">
                   Modo de edição ativo. Preencha os campos obrigatórios e clique em salvar.
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsEditingManualData(false)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-hover text-ink border border-line text-xs font-bold transition-colors cursor-pointer"
                 >
                   Voltar à Visualização
                 </button>
@@ -1154,7 +1155,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                     setIsEditingManualData(false);
                     setActiveTab('upload');
                   }}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#F2EBE6] text-[#1C1418] border border-[#E5DAD3] text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-hover text-ink border border-line text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>CORRIGIR ARQUIVOS</span>
@@ -1164,7 +1165,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsEditingManualData(true)}
-                    className="px-6 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 bg-gradient-to-r from-[#E30A78] to-[#B30A5C] hover:from-[#c20866] hover:to-[#96084c] text-white shadow-pink-600/20 cursor-pointer active:scale-95"
+                    className="px-6 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2 bg-gradient-to-r from-brand to-brand-dark hover:from-brand-dark hover:to-brand-deep text-white shadow-pink-600/20 cursor-pointer active:scale-95"
                   >
                     <Edit3 className="w-4 h-4 stroke-[2.5]" />
                     <span>REVISAR E CORRIGIR DADOS DA OP</span>
@@ -1173,7 +1174,7 @@ export const PcpUploadModal: React.FC<PcpUploadModalProps> = ({
                   <button
                     type="button"
                     onClick={handleApproveAndRelease}
-                    className="px-6 py-2.5 rounded-xl font-black text-xs shadow-lg transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-emerald-600/20 cursor-pointer active:scale-95"
+                    className="px-6 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-emerald-700/20 cursor-pointer active:scale-95"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
                     <span>CONFIRMAR E LIBERAR PARA PRODUÇÃO</span>

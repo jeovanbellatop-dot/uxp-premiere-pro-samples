@@ -65,6 +65,8 @@ dbRoutes.post('/ops', async (req: Request, res: Response) => {
     return res.status(201).json({ success: true, data: created });
   } catch (err: any) {
     const isStale = err?.code === 'STALE_WRITE';
+    // Registro no log do servidor: uma gravação de OP recusada some calada para o operador.
+    console.warn(`[ops] gravação recusada da OP ${req.body?.opNumber || req.body?.id || '?'}: ${err?.message}`);
     return res.status(isStale ? 409 : 400).json({ success: false, error: err.message, code: err?.code });
   }
 });

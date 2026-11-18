@@ -26,6 +26,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
+// Diagnóstico: BELLATOP_LOG_REQUESTS=1 registra cada chamada à API (método, caminho, status, tempo).
+if (process.env.BELLATOP_LOG_REQUESTS === '1') {
+  app.use((req, res, next) => {
+    if (!req.path.startsWith('/api/')) return next();
+    const started = Date.now();
+    res.on('finish', () => console.log(`[api] ${req.method} ${req.path} ${res.statusCode} ${Date.now() - started}ms`));
+    next();
+  });
+}
+
 // Uploads de documentos podem chegar a 1 GB por OP. O conteúdo é enviado ao
 // armazenamento de arquivos; o Firestore recebe apenas metadados e URLs.
 // Base64 ocupa ~33% a mais que o binário, por isso o corpo JSON precisa de margem.

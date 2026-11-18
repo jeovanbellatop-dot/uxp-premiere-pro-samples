@@ -203,7 +203,7 @@ export const StorageAdminPanel: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 border border-slate-800 p-6 rounded-xl text-white">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/30">
+            <div className="p-2.5 bg-blue-600/20 text-blue-700 rounded-lg border border-blue-600/30">
               <HardDrive className="w-6 h-6" />
             </div>
             <div>
@@ -229,7 +229,7 @@ export const StorageAdminPanel: React.FC = () => {
             href={statusData?.googleDrive.rootFolder.url || 'https://drive.google.com/drive/folders/1270ungaiRH5F_ZjmKFcNCJRHDFbVTosC'}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3.5 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium shadow-sm transition"
+            className="flex items-center gap-2 px-3.5 py-2 text-sm bg-blue-600 hover:bg-blue-600 text-white rounded-lg font-medium shadow-sm transition"
           >
             <ExternalLink className="w-4 h-4" />
             Abrir Pasta no Drive
@@ -242,18 +242,18 @@ export const StorageAdminPanel: React.FC = () => {
         <div
           className={`p-4 rounded-lg flex items-start gap-3 border ${
             feedback.type === 'success'
-              ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-300'
+              ? 'bg-emerald-50/40 border-emerald-200/60 text-emerald-700'
               : feedback.type === 'error'
-              ? 'bg-rose-950/40 border-rose-800/60 text-rose-300'
-              : 'bg-blue-950/40 border-blue-800/60 text-blue-300'
+              ? 'bg-rose-50/40 border-rose-200/60 text-rose-700'
+              : 'bg-blue-50/40 border-blue-800/60 text-blue-700'
           }`}
         >
           {feedback.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-700" />
           ) : feedback.type === 'error' ? (
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-400" />
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-700" />
           ) : (
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-blue-400" />
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-blue-700" />
           )}
           <div className="text-sm font-medium">{feedback.message}</div>
         </div>
@@ -266,10 +266,10 @@ export const StorageAdminPanel: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <Database className="w-5 h-5 text-amber-400" />
+                <Database className="w-5 h-5 text-amber-700" />
                 <span className="font-semibold text-sm tracking-wide">Cloud Firestore</span>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/50 text-emerald-300 border border-emerald-700/50">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100/50 text-emerald-700 border border-emerald-800/50">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Conectado
               </span>
@@ -281,16 +281,16 @@ export const StorageAdminPanel: React.FC = () => {
               </div>
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Papel na Arquitetura:</span>
-                <span className="text-amber-300 font-medium">Fonte Única da Verdade</span>
+                <span className="text-amber-700 font-medium">Fonte Única da Verdade</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Tempo Real:</span>
-                <span className="text-emerald-400">onSnapshot Ativo</span>
+                <span className="text-emerald-700">onSnapshot Ativo</span>
               </div>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
             Zero base64 no banco de dados. Metadados auditáveis.
           </div>
         </div>
@@ -300,10 +300,10 @@ export const StorageAdminPanel: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <Cloud className="w-5 h-5 text-cyan-400" />
+                <Cloud className="w-5 h-5 text-cyan-700" />
                 <span className="font-semibold text-sm tracking-wide">Firebase Storage</span>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/50 text-emerald-300 border border-emerald-700/50">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100/50 text-emerald-700 border border-emerald-800/50">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Conectado
               </span>
@@ -317,7 +317,7 @@ export const StorageAdminPanel: React.FC = () => {
               </div>
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Papel:</span>
-                <span className="text-cyan-300 font-medium">Retenção e Fallback</span>
+                <span className="text-cyan-700 font-medium">Retenção e Fallback</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Limite por arquivo:</span>
@@ -326,7 +326,7 @@ export const StorageAdminPanel: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-cyan-700" />
             Garante zero perda de arquivos durante instabilidade externa.
           </div>
         </div>
@@ -336,21 +336,21 @@ export const StorageAdminPanel: React.FC = () => {
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <HardDrive className="w-5 h-5 text-blue-400" />
+                <HardDrive className="w-5 h-5 text-blue-700" />
                 <span className="font-semibold text-sm tracking-wide">Google Drive Bridge</span>
               </div>
               {isDriveOk ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/50 text-emerald-300 border border-emerald-700/50">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100/50 text-emerald-700 border border-emerald-800/50">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Conectado
                 </span>
               ) : isDriveError ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-900/50 text-rose-300 border border-rose-700/50">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100/50 text-rose-700 border border-rose-800/50">
                   <XCircle className="w-3.5 h-3.5" />
                   Indisponível
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-900/50 text-amber-300 border border-amber-700/50">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-200/50 text-amber-700 border border-amber-800/50">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   Aguardando Token
                 </span>
@@ -359,7 +359,7 @@ export const StorageAdminPanel: React.FC = () => {
             <div className="mt-4 space-y-1 text-xs text-slate-300">
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">Pasta Raiz:</span>
-                <span className="font-semibold text-blue-300">Bella Top - Produção</span>
+                <span className="font-semibold text-blue-700">Bella Top - Produção</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-800">
                 <span className="text-slate-400">ID da Pasta:</span>
@@ -376,7 +376,7 @@ export const StorageAdminPanel: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-700" />
             Tokens e URLs confinados 100% no backend.
           </div>
         </div>
@@ -391,20 +391,20 @@ export const StorageAdminPanel: React.FC = () => {
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-white">
-          <div className="text-xs font-medium text-emerald-400">Enviados ao Drive</div>
-          <div className="text-2xl font-bold mt-1 text-emerald-400">{statusData?.counts.enviados || 0}</div>
+          <div className="text-xs font-medium text-emerald-700">Enviados ao Drive</div>
+          <div className="text-2xl font-bold mt-1 text-emerald-700">{statusData?.counts.enviados || 0}</div>
           <div className="text-[11px] text-slate-400 mt-1">Sincronizados e organizados</div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-white">
-          <div className="text-xs font-medium text-amber-400">Pendentes (Storage)</div>
-          <div className="text-2xl font-bold mt-1 text-amber-400">{statusData?.counts.pendentes || 0}</div>
+          <div className="text-xs font-medium text-amber-700">Pendentes (Storage)</div>
+          <div className="text-2xl font-bold mt-1 text-amber-700">{statusData?.counts.pendentes || 0}</div>
           <div className="text-[11px] text-slate-400 mt-1">Retidos para reprocessamento</div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-white">
-          <div className="text-xs font-medium text-rose-400">Com Erro / Limite</div>
-          <div className="text-2xl font-bold mt-1 text-rose-400">{statusData?.counts.erros || 0}</div>
+          <div className="text-xs font-medium text-rose-700">Com Erro / Limite</div>
+          <div className="text-2xl font-bold mt-1 text-rose-700">{statusData?.counts.erros || 0}</div>
           <div className="text-[11px] text-slate-400 mt-1">Após 3 tentativas de envio</div>
         </div>
       </div>
@@ -425,7 +425,7 @@ export const StorageAdminPanel: React.FC = () => {
           <div className="p-4 bg-slate-800/60 border border-slate-700/70 rounded-xl flex flex-col justify-between">
             <div>
               <div className="font-semibold text-sm flex items-center gap-2">
-                <FolderTree className="w-4 h-4 text-blue-400" />
+                <FolderTree className="w-4 h-4 text-blue-700" />
                 Provisionar Estrutura
               </div>
               <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
@@ -435,7 +435,7 @@ export const StorageAdminPanel: React.FC = () => {
             <button
               onClick={handleProvisionDrive}
               disabled={actionLoading !== null}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition"
+              className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium bg-blue-600 hover:bg-blue-600 disabled:opacity-50 text-white rounded-lg transition"
             >
               <FolderTree className="w-3.5 h-3.5" />
               {actionLoading === 'provision' ? 'Provisionando...' : 'Provisionar estrutura do Drive'}
@@ -446,7 +446,7 @@ export const StorageAdminPanel: React.FC = () => {
           <div className="p-4 bg-slate-800/60 border border-slate-700/70 rounded-xl flex flex-col justify-between">
             <div>
               <div className="font-semibold text-sm flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-amber-400" />
+                <RefreshCw className="w-4 h-4 text-amber-700" />
                 Reprocessar Fila
               </div>
               <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
@@ -456,7 +456,7 @@ export const StorageAdminPanel: React.FC = () => {
             <button
               onClick={handleRetryPending}
               disabled={actionLoading !== null}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-lg transition"
+              className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium bg-brand hover:bg-brand-dark disabled:opacity-50 text-white rounded-lg transition"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${actionLoading === 'retry' ? 'animate-spin' : ''}`} />
               {actionLoading === 'retry' ? 'Reprocessando...' : 'Reprocessar pendentes'}
@@ -467,7 +467,7 @@ export const StorageAdminPanel: React.FC = () => {
           <div className="p-4 bg-slate-800/60 border border-slate-700/70 rounded-xl flex flex-col justify-between">
             <div>
               <div className="font-semibold text-sm flex items-center gap-2">
-                <Archive className="w-4 h-4 text-emerald-400" />
+                <Archive className="w-4 h-4 text-emerald-700" />
                 Backup do Firestore
               </div>
               <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
@@ -477,7 +477,7 @@ export const StorageAdminPanel: React.FC = () => {
             <button
               onClick={handleCreateBackup}
               disabled={actionLoading !== null}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg transition"
+              className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-lg transition"
             >
               <Archive className="w-3.5 h-3.5" />
               {actionLoading === 'backup' ? 'Exportando...' : 'Fazer backup agora'}
@@ -492,15 +492,15 @@ export const StorageAdminPanel: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl text-white">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div className="flex items-center gap-2 font-semibold text-sm">
-              <Archive className="w-4 h-4 text-emerald-400" />
+              <Archive className="w-4 h-4 text-emerald-700" />
               Último Backup do Sistema
             </div>
             {statusData?.ultimoBackup?.status === 'CONCLUIDO_DRIVE' ? (
-              <span className="px-2 py-0.5 bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs rounded-full font-medium">
+              <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-full font-medium">
                 Concluído no Drive
               </span>
             ) : statusData?.ultimoBackup?.status === 'PENDENTE_DRIVE' ? (
-              <span className="px-2 py-0.5 bg-amber-950 border border-amber-800 text-amber-400 text-xs rounded-full font-medium">
+              <span className="px-2 py-0.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-full font-medium">
                 Salvo no Storage
               </span>
             ) : (
@@ -528,13 +528,13 @@ export const StorageAdminPanel: React.FC = () => {
             {statusData?.ultimoBackup?.driveFileId && (
               <div className="flex justify-between">
                 <span className="text-slate-400">Drive File ID:</span>
-                <span className="text-blue-400 font-mono truncate max-w-[200px]">
+                <span className="text-blue-700 font-mono truncate max-w-[200px]">
                   {statusData.ultimoBackup.driveFileId}
                 </span>
               </div>
             )}
             {statusData?.ultimoBackup?.erro && (
-              <div className="p-2.5 mt-2 bg-rose-950/40 border border-rose-900/60 rounded-lg text-rose-300 text-[11px]">
+              <div className="p-2.5 mt-2 bg-rose-50/40 border border-rose-100/60 rounded-lg text-rose-700 text-[11px]">
                 Aviso: {statusData.ultimoBackup.erro}
               </div>
             )}
@@ -545,14 +545,14 @@ export const StorageAdminPanel: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl text-white">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div className="flex items-center gap-2 font-semibold text-sm">
-              <FolderTree className="w-4 h-4 text-blue-400" />
+              <FolderTree className="w-4 h-4 text-blue-700" />
               Estrutura Oficial de Diretórios no Drive
             </div>
-            <span className="text-[11px] text-blue-400 font-mono">1270ungaiRH5F_ZjmKFcNCJRHDFbVTosC</span>
+            <span className="text-[11px] text-blue-700 font-mono">1270ungaiRH5F_ZjmKFcNCJRHDFbVTosC</span>
           </div>
 
           <div className="mt-3.5 space-y-1.5 text-xs font-mono text-slate-300">
-            <div className="flex items-center gap-2 text-blue-400 font-bold">
+            <div className="flex items-center gap-2 text-blue-700 font-bold">
               📁 Bella Top - Produção/
             </div>
             <div className="pl-4 space-y-1 text-slate-300">
@@ -640,7 +640,7 @@ export const StorageGlobalIndicator: React.FC = () => {
 
   if (status === 'OFFLINE') {
     return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-900/70 text-rose-200 border border-rose-700/80 shadow-sm animate-pulse">
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100/70 text-rose-800 border border-rose-800/80 shadow-sm animate-pulse">
         <AlertTriangle className="w-3.5 h-3.5" />
         <span>Sem conexão — fila local pendente</span>
       </div>
@@ -649,11 +649,11 @@ export const StorageGlobalIndicator: React.FC = () => {
 
   if (status === 'DRIVE_OFFLINE') {
     return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-950/80 text-amber-300 border border-amber-800/80 shadow-sm">
-        <Cloud className="w-3.5 h-3.5 text-amber-400" />
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50/80 text-amber-700 border border-amber-200/80 shadow-sm">
+        <Cloud className="w-3.5 h-3.5 text-amber-700" />
         <span>Drive indisponível — salvando no Firebase</span>
         {pendingCount > 0 && (
-          <span className="px-1.5 py-0.2 bg-amber-800/80 rounded-full text-[10px] font-bold">
+          <span className="px-1.5 py-0.2 bg-amber-200/80 rounded-full text-[10px] font-bold">
             {pendingCount}
           </span>
         )}
@@ -662,8 +662,8 @@ export const StorageGlobalIndicator: React.FC = () => {
   }
 
   return (
-    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-800/60 shadow-sm">
-      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50/70 text-emerald-700 border border-emerald-200/60 shadow-sm">
+      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
       <span>Conectado</span>
     </div>
   );

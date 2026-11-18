@@ -203,3 +203,16 @@ export function getActiveAdministrators(users: User[]): User[] {
   );
 }
 
+
+/** Usuários do escritório (Administração e PCP): entram pelo card "Administração / PCP". */
+export function getActiveOfficeUsers(users: User[]): User[] {
+  if (!Array.isArray(users)) return [];
+  return users.filter(
+    (u) =>
+      u.isActive !== false &&
+      (u.role === 'ADMIN' ||
+        u.role === 'MASTER' ||
+        u.role === 'PCP' ||
+        (Array.isArray(u.sectors) && (u.sectors.includes('ADMIN') || u.sectors.includes('PCP'))))
+  );
+}

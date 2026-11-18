@@ -41,32 +41,32 @@ export const PackingModal: React.FC<PackingModalProps> = ({ order, expectedPiece
   };
 
   const inputClass =
-    'w-full px-3 py-2.5 rounded-xl border border-[#E5DAD3] bg-[#FAF5F1] text-sm font-bold text-[#1C1418] focus:border-[#E30A78] focus:bg-white focus:outline-none';
+    'w-full px-3 py-2.5 rounded-xl border border-line bg-canvas text-sm font-bold text-ink focus:border-brand focus:bg-white focus:outline-none';
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#1C1418]/70 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
-      <div className="bg-white border border-[#E5DAD3] w-full max-w-xl rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
+    <div className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
+      <div className="bg-white border border-line w-full max-w-xl rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-pink-50 border border-pink-200 text-[#E30A78]">
+            <div className="p-3 rounded-2xl bg-pink-50 border border-pink-200 text-brand">
               <Scale className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-black text-lg text-[#1C1418]">Caixas e peso · OP #{order.opNumber}</h3>
-              <p className="text-xs text-[#6E615B]">{order.client} · {order.productName}</p>
+              <h3 className="font-bold text-lg text-ink">Caixas e peso · OP #{order.opNumber}</h3>
+              <p className="text-xs text-muted">{order.client} · {order.productName}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-[#F2EBE6] cursor-pointer" aria-label="Fechar">
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-hover cursor-pointer" aria-label="Fechar">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-xs text-[#6E615B]">
+        <p className="text-xs text-muted">
           Uma linha para cada grupo de caixas iguais. Ex.: 10 caixas de 20 kg com 500 peças, e mais 1 caixa de 15,9 kg com 380 peças.
         </p>
 
         <div className="space-y-2">
-          <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 text-[10px] font-black text-[#6E615B] uppercase">
+          <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 text-[10px] font-bold text-muted uppercase">
             <span>Caixas</span>
             <span>Peso de cada (kg)</span>
             <span>Peças em cada</span>
@@ -81,7 +81,7 @@ export const PackingModal: React.FC<PackingModalProps> = ({ order, expectedPiece
                 type="button"
                 onClick={() => setLines((prev) => (prev.length > 1 ? prev.filter((_, j) => j !== i) : prev))}
                 disabled={lines.length === 1}
-                className="w-9 h-9 flex items-center justify-center rounded-xl border border-[#E5DAD3] text-[#8A7D77] hover:text-rose-600 disabled:opacity-30 cursor-pointer"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-line text-subtle hover:text-rose-700 disabled:opacity-30 cursor-pointer"
                 aria-label={`Remover linha ${i + 1}`}
               >
                 <Trash2 className="w-4 h-4" />
@@ -91,36 +91,36 @@ export const PackingModal: React.FC<PackingModalProps> = ({ order, expectedPiece
           <button
             type="button"
             onClick={() => setLines((prev) => [...prev, { caixas: '1', pesoKg: '', pecasPorCaixa: '' }])}
-            className="mt-1 px-3 py-2 rounded-xl border border-dashed border-[#E30A78] text-[#E30A78] text-xs font-black flex items-center gap-1.5 cursor-pointer hover:bg-pink-50"
+            className="mt-1 px-3 py-2 rounded-xl border border-dashed border-brand text-brand text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:bg-pink-50"
           >
             <Plus className="w-4 h-4" /> Adicionar caixa diferente (excedente)
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 rounded-2xl bg-[#FAF5F1] border border-[#E5DAD3] p-3 text-center">
+        <div className="grid grid-cols-3 gap-2 rounded-2xl bg-canvas border border-line p-3 text-center">
           <div>
-            <p className="text-[10px] font-black text-[#6E615B] uppercase">Caixas</p>
-            <p className="text-xl font-black text-[#1C1418]">{totalCaixas.toLocaleString('pt-BR')}</p>
+            <p className="text-[10px] font-bold text-muted uppercase">Caixas</p>
+            <p className="text-xl font-bold text-ink">{totalCaixas.toLocaleString('pt-BR')}</p>
           </div>
           <div>
-            <p className="text-[10px] font-black text-[#6E615B] uppercase">Peso total</p>
-            <p className="text-xl font-black text-[#1C1418]">{pesoTotal.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} kg</p>
+            <p className="text-[10px] font-bold text-muted uppercase">Peso total</p>
+            <p className="text-xl font-bold text-ink">{pesoTotal.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} kg</p>
           </div>
           <div>
-            <p className="text-[10px] font-black text-[#6E615B] uppercase">Peças</p>
-            <p className="text-xl font-black text-[#1C1418]">{totalPecas.toLocaleString('pt-BR')}</p>
+            <p className="text-[10px] font-bold text-muted uppercase">Peças</p>
+            <p className="text-xl font-bold text-ink">{totalPecas.toLocaleString('pt-BR')}</p>
           </div>
         </div>
 
         {piecesDiffer && (
-          <p className="text-xs font-bold rounded-xl bg-[#FFF4DB] border border-[#E8B54A] text-[#5C3800] p-3">
+          <p className="text-xs font-bold rounded-xl bg-amber-50 border border-amber-300 text-amber-900 p-3">
             Atenção: as caixas somam {totalPecas.toLocaleString('pt-BR')} peças, mas a embalagem registrou {expectedPieces.toLocaleString('pt-BR')} peças boas. Confira antes de enviar.
           </p>
         )}
-        {error && <p className="text-xs font-bold text-rose-700">{error}</p>}
+        {error && <p className="text-xs font-bold text-rose-800">{error}</p>}
 
         <div className="grid grid-cols-2 gap-3 pt-1">
-          <button onClick={onClose} className="min-h-12 rounded-2xl border border-[#E5DAD3] bg-white font-black text-[#1C1418] hover:bg-[#F2EBE6] cursor-pointer">
+          <button onClick={onClose} className="min-h-12 rounded-2xl border border-line bg-white font-bold text-ink hover:bg-hover cursor-pointer">
             CANCELAR
           </button>
           <button
@@ -131,7 +131,7 @@ export const PackingModal: React.FC<PackingModalProps> = ({ order, expectedPiece
                 setError(err?.message || 'Não foi possível salvar as caixas.');
               }
             }}
-            className="min-h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-black text-white cursor-pointer"
+            className="min-h-12 rounded-2xl bg-emerald-700 hover:bg-emerald-600 font-bold text-white cursor-pointer"
           >
             ENVIAR PARA O EMBARQUE
           </button>
